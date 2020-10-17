@@ -1,0 +1,14 @@
+# Not ignored .c, .h, Makefile
+#Object files/libs
+
+*.o
+
+
+#EMACS save files
+*~
+
+\#*\#
+.\#*
+
+#Degugging Symbols
+*.dSYM

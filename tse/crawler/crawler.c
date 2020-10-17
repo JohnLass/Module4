@@ -11,15 +11,27 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "libutils.a"
+#include "queue.h"
+#include "hash.h"
+#include "webpage.h"
 
 
 int main(void){
+	char *url = "http://thayer.github.io/engs50/";
+	int depth = 0;
+	char *html =NULL;
 
-	car_t car1 = makecar("Keystone",59.2,0202);
+	webpage_t *w1 = webpage_new(url,depth,html);;
+	int w2;
+
+
+	w2 = webpage_getDepth(w1);
 	
-	printf("Hello -- Crawler, %d\n",car1->year);
+	printf("%d\n", w2);
 	
+	printf("Hello -- Crawlerp--!\n");
+
+	webpage_delete(w1);
 	
 	exit(EXIT_SUCCESS);
 

@@ -10,6 +10,7 @@
  */
 
 #include "queue.h"
+#include "webpage.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
@@ -68,7 +69,7 @@ void qclose(queue_t *qp){
 			//loop through the queue, deallocating the memory in each node and the node itself
 			do{
 				if(ptr->front->data!=NULL){
-					free(ptr->front->data);
+					webpage_delete(ptr->front->data);
 				}
 				hold = ptr->front;
 				ptr->front = hold->next;

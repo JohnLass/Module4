@@ -17,14 +17,14 @@
 #include <stdbool.h>
 
 int main(void){
-	char *url = "http://thayer.github.io/engs50/";
+	char *url = "https://thayer.github.io/engs50/";
 	int depth = 0;
-	char *html = "This is a webpage with the URL http://thayer.github.io/engs50/";
-
-	webpage_t *w1 = webpage_new(url,depth,html);
+	
+	webpage_t *w1 = webpage_new(url,depth,NULL);
 
 	if(webpage_fetch(w1)){
 		printf("Webpage found and fetched\n");
+		printf("%s\n",webpage_getHTML(w1));		
 	} else{
 		printf("Error getting webpage");
 		exit(EXIT_FAILURE);
@@ -33,7 +33,7 @@ int main(void){
 	
 	// iterating over URLS
 	int pos=0;
-		char *result=NULL;
+	char *result;
 	while((pos=webpage_getNextURL(w1, pos, &result)) > 0){
 		printf("Found url: %s\n", result);
 		free(result);

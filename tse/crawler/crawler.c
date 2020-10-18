@@ -15,16 +15,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 int main(void){
 	char *url = "https://thayer.github.io/engs50/";
 	int depth = 0;
 	
 	webpage_t *w1 = webpage_new(url,depth,NULL);
+	webpage_t *HOLD;
 
 	if(webpage_fetch(w1)){
 		printf("Webpage found and fetched\n");
-		printf("%s\n",webpage_getHTML(w1));		
 	} else{
 		printf("Error getting webpage");
 		exit(EXIT_FAILURE);
@@ -32,16 +33,23 @@ int main(void){
 
 	
 	// iterating over URLS
+	qopen();
 	int pos=0;
 	char *result;
 	while((pos=webpage_getNextURL(w1, pos, &result)) > 0){
-		printf("Found url: %s\n", result);
+
+		if(!(strncmp(url,result,32))){
+		printf("Found Internal URL: %s\n", result);
+		HOLD = webpage_new(url,depth,NULL);
+		qput(HOLD);
+		}else{
+			printf("Found External URL: %s\n", result);
+		}
+		
 		free(result);
 	}
-	
-		
 
-
+	qapply(printnode());
 	webpage_delete(w1);
 	exit(EXIT_SUCCESS);
 

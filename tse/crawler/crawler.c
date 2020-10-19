@@ -41,14 +41,15 @@ int32_t pagesave(webpage_t *pagep, int id, char *dirname){
 	if(pagep != NULL && dirname != NULL){
 		FILE *fptr;
 		char pathname[50];
-		int check, depth, htmllen;
+		int check1, check2, depth, htmllen;
 		char *url, *html;
 		
 		sprintf(pathname,"../%s/%d",dirname,id);
-		check = access(pathname, W_OK);
-		
-		if(check != 0){
-			mkdir(pathname,0777);
+		check1 = access(pathname, W_OK);
+		check2 = access(pathname, F_OK);
+		if(check1 != 0 && check2 == 0){
+			//mkdir(pathname,0777);
+			return -1;
 		}
 		
 		url = webpage_getURL(pagep);

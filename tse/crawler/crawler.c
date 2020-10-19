@@ -16,6 +16,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 
 void printer(void *page){
 	webpage_t *wbp = (webpage_t *) page;
@@ -34,7 +37,38 @@ bool web_search(void *page, const void* searchkeyp){
 	}
 }
 	 
-	
+int32_t pagesave(webpage_t *pagep, int id, char *dirname){
+	if(pagep != NULL && dirname != NULL){
+		FILE *fptr;
+		char pathname[50];
+		int check, depth, htmllen;
+		char *url, *html;
+		
+		sprintf(pathname,"../%s/%d",dirname,id);
+		check = access(pathname, W_OK);
+		
+		if(check != 0){
+			mkdir(pathname,0777);
+		}
+		
+		url = webpage_getURL(pagep);
+		depth = webpage_getDepth(pagep);
+		htmllen = webpage_getHTMLlen(pagep);
+		html = webpage_getHTML(pagep);
+		
+		fptr = fopen(pathname,"w");
+		
+		fprintf(fptr,"%s\n",url);
+		fprintf(fptr,"%d\n",depth);
+		fprintf(fptr,"%d\n",htmllen);
+		fprintf(fptr,"%s\n",html);
+		
+		fclose(fptr);
+			
+		return 0;
+	}
+	return -1;
+}
 
 
 int main(void){
@@ -44,7 +78,7 @@ int main(void){
 	uint32_t size = 16; 
 	hashtable_t *ht;
 	webpage_t *w1 = webpage_new(url,depth,NULL);
-	webpage_t *HOLD;
+	webpage_t *HOLD, *w2;
 	void (*fn)(void *pagep);
 	//bool (*hfunc)(void *page, const void* searchkeyp);
 	if(webpage_fetch(w1)){
@@ -73,7 +107,15 @@ int main(void){
 		}
  		free(result);
 	}
+	
+	pagesave(w1,3,"pages");
 
+	w2 = qget(qp);
+	pagesave(w2,1,"pages");
+	webpage_delete(w2);
+
+	
+	
 	fn = printer;
 	qapply(qp,fn);
 

@@ -23,14 +23,31 @@ void printer(void *page){
 	printf("***Internal URL in Queue: %s\n",qurlp);
 }
 
+bool web_search(void *page, const void* searchkeyp){
+	if((page==NULL) || (searchkeyp==NULL)){
+			return false;
+	}
+	webpage_t *wbp = (webpage_t *) page;
+	if(strcmp(webpage_getURL(wbp),(char *)searchkeyp)!=0){
+		return false;
+	} else {
+		return true;
+	}
+}
+	 
+	
+
 
 int main(void){
 	char *url = "https://thayer.github.io/engs50/";
 	int depth = 0;
-	queue_t *qp;	
+	queue_t *qp;
+	uint32_t size = 16; 
+	hashtable_t *ht;
 	webpage_t *w1 = webpage_new(url,depth,NULL);
 	webpage_t *HOLD;
-	void (*fn)(void *pagep);	
+	void (*fn)(void *pagep);
+	bool (*hfunc)(void *page, const void* searchkeyp);
 	if(webpage_fetch(w1)){
 		printf("Webpage found and fetched\n");
 	} else{
@@ -39,13 +56,19 @@ int main(void){
 	}
 	// iterating over URLS
 	qp=qopen();
+	ht=hopen(size);
+	hfunc=web_search;
 	int pos=0;
 	char *result;
 	while((pos=webpage_getNextURL(w1, pos, &result)) > 0){
-		if(!(strncmp(url,result,32))){
-		printf("Found Internal URL: %s\n", result);
-		HOLD = webpage_new(result,depth,NULL);
-		qput(qp,HOLD);
+		if(!(strncmp(url,result,32))){ // confirming that URL is not external
+
+			HOLD = webpage_new(result,depth,NULL);
+			if(hsearch(ht, hfunc, result, strlen(result))==NULL){
+				printf("Found Internal URL: %s\n", result);
+				hput(ht, HOLD, result, strlen(result));
+				qput(qp,HOLD);
+			}
 		}else{
 			printf("Found External URL: %s\n", result);
 		}
@@ -54,7 +77,10 @@ int main(void){
 
 	fn = printer;
 	qapply(qp,fn);
+
 	webpage_delete(w1);
 	qclose(qp);
+	hclose(ht);
+
 	exit(EXIT_SUCCESS);
 }

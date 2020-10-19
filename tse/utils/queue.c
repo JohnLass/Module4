@@ -69,7 +69,8 @@ void qclose(queue_t *qp){
 			//loop through the queue, deallocating the memory in each node and the node itself
 			do{
 				if(ptr->front->data!=NULL){
-					webpage_delete(ptr->front->data);
+					//	webpage_delete(ptr->front->data);
+					free(ptr->front->data);
 				}
 				hold = ptr->front;
 				ptr->front = hold->next;
@@ -168,16 +169,16 @@ void* qsearch(queue_t *qp,bool (*searchfn)(void* elementp,const void* keyp),cons
 		if(ptr->front!=NULL){
 			for(incp=ptr->front;incp!=NULL;incp=incp->next){
 				flag = searchfn(incp->data,skeyp);
-				printf("Loop\n");
+				
 				if(flag==true){
-					printf("Element Found!\n");
+					//	printf("Element Found!\n");
 					return incp->data;
 				}
 			}
 		}
-		if(ptr->front==NULL)
-			printf("Empty List");
-		printf("Element Not Found.\n");
+		//if(ptr->front==NULL)
+			//printf("Empty List");
+			//	printf("Element Not Found.\n");
 		return NULL;
 	}
 	printf("Invalid arg\n");

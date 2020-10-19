@@ -133,35 +133,37 @@ int main(int argc, char *argv[]){
 		printf("loopcount: %d\n",loop_count);
 		depth = webpage_getDepth(w1);
 		
-		webpage_fetch(w1);
-		//printf("webpage found again!\n");
+		if(webpage_fetch(w1)){
+			printf("webpage found again!\n");
 		
 		
-		int pos=0;
-		char *urlp = NULL;
-		pos=webpage_getNextURL(w1, pos, &urlp);
-		// iterating over URLS in w1's HTML
-		while(pos > 0){
-			// confirming that URL is not external	
-			if(!(strncmp(url,urlp,32))){ 
-				//checks if the URL is already in the hashtable, if not add URL to hashtable, make webpage struct with url = curl and put it in the queue
-				if(hsearch(ht, hfunc, urlp, strlen(urlp))==NULL){
-					hput(ht, urlp, urlp, strlen(urlp));
-					HOLD = webpage_new(urlp,webpage_getDepth(w1)+1,NULL);
-					printf("Found Internal URL: %s\n", urlp);
-					qput(qp,HOLD);				
+			int pos=0;
+			char *urlp = NULL;
+			pos=webpage_getNextURL(w1, pos, &urlp);
+			// iterating over URLS in w1's HTML
+			while(pos > 0){
+				// confirming that URL is not external	
+				if(!(strncmp(url,urlp,32))){ 
+					//checks if the URL is already in the hashtable, if not add URL to hashtable, make webpage struct with url = curl and put it in the queue
+					if(hsearch(ht, hfunc, urlp, strlen(urlp))==NULL){
+						hput(ht, urlp, urlp, strlen(urlp));
+						HOLD = webpage_new(urlp,webpage_getDepth(w1)+1,NULL);
+						printf("Found Internal URL: %s\n", urlp);
+						qput(qp,HOLD);				
+					}
+					else {
+						printf("URL already in hashtable:%s\n", urlp);
+						free(urlp);
+					}
 				}
-				else {
-					printf("URL already in hashtable:%s\n", urlp);
+				else{
+					printf("Found External URL: %s\n", urlp);		
 					free(urlp);
 				}
+				pos=webpage_getNextURL(w1, pos, &urlp);
 			}
-			else{
-				printf("Found External URL: %s\n", urlp);		
-				free(urlp);
-			}
-			pos=webpage_getNextURL(w1, pos, &urlp);
-		}		
+		 
+		}
 		webpage_delete(w1);
 		
 	}

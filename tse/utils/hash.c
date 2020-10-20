@@ -121,9 +121,9 @@ void *hsearch(hashtable_t *htp, bool (*searchfn)(void* elementp, const void* sea
 	if(htp!=NULL && key!=NULL && keylen>=0){
 		ht_t *ptr = (ht_t*)htp;
 		uint32_t pos;
-		pos = SuperFastHash(key,keylen,ptr->hsize);
 		queue_t **hold = ptr->qTable;
 		void *data=(void*)key;
+		pos = SuperFastHash(key,keylen,ptr->hsize);
 		void *rtrn=qsearch(hold[pos],searchfn,data);
 		return rtrn;
 	}
@@ -141,4 +141,19 @@ void happly(hashtable_t *htp, void (*fn)(void* ep)){
 	else{
 		printf("NULL arg\n");
 	}
+}
+
+void *hremove(hashtable_t *htp, bool(*searchfn)(void* elementp, const void* searchkeyp), const char *key, int32_t keylen){
+
+	if(htp!=NULL && key!=NULL && keylen>=0){
+		ht_t *ptr = (ht_t*)htp;
+		uint32_t pos;
+		queue_t **hold = ptr->qTable;
+		void *data=(void*)key;
+		pos = SuperFastHash(key,keylen,ptr->hsize);
+		void *rtrn=qremove(hold[pos],searchfn,data);
+		return rtrn;
+	}
+	printf("ERROR With Hash/key/keylen");
+	return NULL;
 }

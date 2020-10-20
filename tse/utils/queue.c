@@ -69,7 +69,6 @@ void qclose(queue_t *qp){
 			//loop through the queue, deallocating the memory in each node and the node itself
 			do{
 				if(ptr->front->data!=NULL){
-					//	webpage_delete(ptr->front->data);
 					free(ptr->front->data);
 				}
 				hold = ptr->front;

@@ -100,7 +100,7 @@ int main(int argc, char *argv[]){
 	char *seed_url = (char *) calloc(strlen(url) + 1, sizeof(char));
  //char *seed_url = (char *) malloc(sizeof(char)*strlen(url));
 	queue_t *qp;
-	uint32_t size = 200;
+	uint32_t size = 100;
 	int depth = 0;
 	hashtable_t *ht;
 	webpage_t *w1 = webpage_new(url,depth,NULL);
@@ -109,13 +109,6 @@ int main(int argc, char *argv[]){
 	bool (*hfunc)(void *page, const void* searchkeyp);
 	char *urlp2;
 	//fetches the HTML from the seed url and puts it in it's url variable, checks if successful
-	if(webpage_fetch(w1)){
-		printf("Webpage found and fetched\n");
-	}else{
-		printf("Error getting webpage");
-		webpage_delete(w1);
-		exit(EXIT_FAILURE);
-	}
 	//opens up queue of webpages, hashtable of urls (strings) and puts the seed in first
 	strcpy(seed_url,url);
 	qp=qopen();
@@ -134,87 +127,50 @@ int main(int argc, char *argv[]){
 		loop_count++;
 		printf("loopcount: %d\n",loop_count);
 		depth = webpage_getDepth(curr);
-		pagesave(curr,loop_count,pagedir);
 		
 		
-			if(depth<max_depth){
-				if(webpage_fetch(curr)){
+		
+		
+		if(depth<=max_depth){
+			printf("depth : %d\n", depth);
+			if(webpage_fetch(curr)){
 				//	printf("webpage found again!\n");
+				pagesave(curr,loop_count,pagedir);
+
+				if(depth<max_depth){
+					int pos=0;
 				
-				int pos=0;
-		
-				pos=webpage_getNextURL(curr, pos, &urlp);
-				// iterating over URLS in w1's HTML
-				while(pos > 0){
-					// confirming that URL is not external	
-					if(!(strncmp(url,urlp,32))){ 
-						//checks if the URL is already in the hashtable, if not add URL to hashtable, make webpage struct with url = curl and put it in the queue
-						if(hsearch(ht, hfunc, urlp, strlen(urlp))==NULL){
-							hput(ht, urlp, urlp, strlen(urlp));
-							HOLD = webpage_new(urlp, depth + 1,NULL);
-							printf("Found Internal URL: %s\n", urlp);
-							qput(qp,HOLD);				
+				
+					// iterating over URLS in curr's HTML
+					while((pos = webpage_getNextURL(curr, pos, &urlp)) > 0){
+						// confirming that URL is not external	
+						if(IsInternalURL(urlp)){ 
+							//checks if the URL is already in the hashtable, if not add URL to hashtable, make webpage struct with url = curl and put it in the queue
+							if(hsearch(ht, hfunc, urlp, strlen(urlp))==NULL){
+								hput(ht, urlp, urlp, strlen(urlp));
+								HOLD = webpage_new(urlp, depth + 1,NULL);
+								printf("Found Internal URL: %s\n", urlp);
+								qput(qp,HOLD);				
+							}
+							else {
+								printf("URL already in hashtable:%s\n", urlp);
+								free(urlp);
+							}
 						}
-						else {
-							printf("URL already in hashtable:%s\n", urlp);
+						else{
+							printf("Found External URL: %s\n", urlp);		
 							free(urlp);
 						}
 					}
-					else{
-						printf("Found External URL: %s\n", urlp);		
-						free(urlp);
-					}
-					pos=webpage_getNextURL(curr, pos, &urlp);
 				}
-				
-			}		
+			
+			}
 		}
 		webpage_delete(curr);
+		
 	}
-	//	webpage_delete(curr);
 	
-//webpage_delete(w1);
-/*
-	//saves the first page and deletes w1
-	pagesave(w1,0,"pages");
-	webpage_delete(w1);
-
-	//Prints everything idddddddn the queue
-	fn = printer;
 	qapply(qp,fn);
-
-	//takes out the first item, gets second item in queue (this is to test fetching another html)
-	w2 = qget(qp);
-	webpage_delete(w2);
-	w2 = qget(qp);
-
-	//fetches the second items html
-	if(webpage_fetch(w2)){
-		printf("Webpage found and fetched\n");
-	} else{
-		printf("Error getting webpage");
-		exit(EXIT_FAILURE);
-	}
-
-	//saves second item, HTML should be non-NULL
-	pagesave(w2,15,"pages");
-	webpage_delete(w2), save each one in a file that is numbered, delete each webpage as you get it
-	HOLD = qget(qp);
-	int counter = 1;
-	while(HOLD!=NULL){
-		pagesave(HOLD,counter,"pages");
-		webpage_delete(HOLD);
-		HOLD = qget(qp);
-		counter++;
-	}
-	*/
-	//close queue and hashtable
-
-		//Prints everything in the queue
-	//w2 = qget(qp);
-	//free(w2);
-
- 
 	
 	qclose(qp);
 	hclose(ht);

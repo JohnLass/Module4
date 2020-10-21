@@ -12,6 +12,7 @@
 #include "hash.h"
 #include "queue.h"
 #include "listfun.h"
+#include "pageio.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -38,41 +39,6 @@ bool web_search(void *urlp, const void* searchkeyp){
 		return true;
 	}
 }
-	 
-int32_t pagesave(webpage_t *pagep, int id, char *dirname){
-	if(pagep != NULL && dirname != NULL){
-		FILE *fptr;
-		char pathname[50];
-		int check1, check2, depth, htmllen;
-		char *url, *html;
-		
-		sprintf(pathname,"./%s/%d",dirname,id);
-		check1 = access(pathname, W_OK);
-		check2 = access(pathname, F_OK);
-		if(check1 != 0 && check2 == 0){
-			//mkdir(pathname,0777);
-			return -1;
-		}
-		
-		url = webpage_getURL(pagep);
-		depth = webpage_getDepth(pagep);
-		htmllen = webpage_getHTMLlen(pagep);
-		html = webpage_getHTML(pagep);
-		
-		fptr = fopen(pathname,"w");
-		
-		fprintf(fptr,"%s\n",url);
-		fprintf(fptr,"%d\n",depth);
-		fprintf(fptr,"%d\n",htmllen);
-		fprintf(fptr,"%s\n",html);
-		
-		fclose(fptr);
-			
-		return 0;
-	}
-	return -1;
-}
-
 
 int main(int argc, char *argv[]){
 	//check number of args

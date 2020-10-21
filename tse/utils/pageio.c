@@ -16,7 +16,7 @@
 #include <unistd.h>
 
 #define MAXVAL 50
-
+#define MAXURL 250
 /* 
  * pagesave -- save the page in filename id in dirctory dirnm
  * returns: 0 for success; -1 for failure
@@ -26,7 +26,7 @@
  * <html-length>
  * <html>
  */
-int32_t pagesave(webpage_t *pagep, int id, char *dirnm){
+int32_t pagesave(webpage_t *pagep, int id, char *dirnm) {
 
 	if(pagep != NULL && dirnm != NULL){
 		FILE *fptr;
@@ -58,4 +58,47 @@ int32_t pagesave(webpage_t *pagep, int id, char *dirnm){
 	}
 
 	return -1;	
+}
+
+
+/*
+ * pageload -- loads the numbered filename <id> in directory <dirnm> into a new webpage
+ * returns: non-NULL for success; Null otherwise
+ */
+
+webpage_t *pageload(int id, char *dirnm) {
+	char pathname[MAXVAL];
+	webpage_t *pagep = NULL;
+	int depth, htmllen;
+	FILE *fp;
+	char url[MAXURL];
+	char garbage;
+		
+	sprintf(pathname,"./%s/%d",dirnm,id);
+
+	if(access(pathname, F_OK) != 0 || access(pathname, R_OK)) {
+		printf("Invalid path\n");
+		return NULL;
+	}
+
+	fp = fopen(pathname, "r");
+	if(fp == NULL)
+		return NULL;
+	
+	fscanf(fp, "%s", url);
+	fscanf(fp, "%d", &depth);
+	fscanf(fp, "%d", &htmllen);
+
+	char html[htmllen];
+	garbage = fgetc(fp);
+	
+	for (int i = 0; i < htmllen; i++) {
+		html[i] = fgetc(fp); 
+	}
+	
+	pagep = webpage_new(url, depth, html);
+
+	fclose(fp);
+	
+	return pagep;
 }

@@ -33,23 +33,29 @@ int main(void) {
 	wp2 = pageload(id, dirname);
 
 	printf("%s\n", webpage_getHTML(wp1));
-	printf("*******************************************************");
-	printf("%s\n", webpage_getHTML(wp2));
+	printf("*******************************************************\n");
+  printf("%s\n", webpage_getHTML(wp2));
 
 	holder = webpage_getURL(wp1);
 	if(strcmp(webpage_getURL(wp1),webpage_getURL(wp2)) != 0){
 		printf("Fail1\n");
+		webpage_delete(wp1);
+		webpage_delete(wp2);
 		exit(EXIT_FAILURE);
 	}
 	if(webpage_getDepth(wp1) != webpage_getDepth(wp2)){
 		printf("Fail2\n");
+		webpage_delete(wp1);
+		webpage_delete(wp2);
 		exit(EXIT_FAILURE);
 	}
 	if(strcmp(webpage_getHTML(wp1),webpage_getHTML(wp2)) != 0){
 		printf("Fail3\n");
+		webpage_delete(wp1);
+		webpage_delete(wp2);
 		exit(EXIT_FAILURE);
 	}
-
+	
 	if (wp1 != NULL)
 		webpage_delete(wp1);
 	if (wp2 != NULL)

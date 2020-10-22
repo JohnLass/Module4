@@ -76,29 +76,28 @@ webpage_t *pageload(int id, char *dirnm) {
 		
 	sprintf(pathname,"./%s/%d",dirnm,id);
 
-	if((access(pathname, F_OK) != 0 || access(pathname, R_OK != 0))) {
-		printf("Invalid path\n");
-		return NULL;
-	}
-
 	fp = fopen(pathname, "r");
 	if(fp == NULL)
 		return NULL;
+
 	
 	fscanf(fp, "%s", url);
 	fscanf(fp, "%d", &depth);
 	fscanf(fp, "%d", &htmllen);
+	
 
 	char html[htmllen];
-	printf("%d\n",htmllen);
 	garbage = fgetc(fp);
-	
-	do{
-		html[i] = fgetc(fp);
+
+ 	while ((html[i]=(fgetc(fp)))!=EOF){
 		i=i+1;
-	}while(1);
-	
-	pagep = webpage_new(url, depth, html);
+	}
+	html[i-1] = '\0';
+	char *htmlh;
+	if(!(htmlh=(char*)malloc((strlen(html)+1)*sizeof(char))))
+		return NULL;
+	strcpy(htmlh,html);
+	pagep = webpage_new(url, depth, htmlh);
 
 	fclose(fp);
 	

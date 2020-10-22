@@ -74,7 +74,7 @@ webpage_t *pageload(int id, char *dirnm) {
 	char url[MAXURL];
  	char garbage;
 		
-	sprintf(pathname,"./%s/%d",dirnm,id);
+	sprintf(pathname,"../crawler/%s/%d",dirnm,id);
 
 	fp = fopen(pathname, "r");
 	if(fp == NULL)

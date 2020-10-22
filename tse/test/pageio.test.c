@@ -23,7 +23,7 @@ int main(void) {
 
 	wp1 = webpage_new(url, depth, NULL);
 
-	if(!webpage_fetch(wp1)){
+	if(!(webpage_fetch(wp1))){
 		webpage_delete(wp1);
 		exit(EXIT_FAILURE);
 	}
@@ -32,8 +32,9 @@ int main(void) {
 
 	wp2 = pageload(id, dirname);
 
-	//printf("%s\n", webpage_getHTML(wp1));
-	//printf("%s\n", webpage_getHTML(wp2));
+	printf("%s\n", webpage_getHTML(wp1));
+	printf("*******************************************************");
+	printf("%s\n", webpage_getHTML(wp2));
 
 	holder = webpage_getURL(wp1);
 	if(strcmp(webpage_getURL(wp1),webpage_getURL(wp2)) != 0){

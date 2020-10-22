@@ -69,14 +69,14 @@ int32_t pagesave(webpage_t *pagep, int id, char *dirnm) {
 webpage_t *pageload(int id, char *dirnm) {
 	char pathname[MAXVAL];
 	webpage_t *pagep = NULL;
-	int depth, htmllen;
+	int depth, htmllen, i=0;
 	FILE *fp;
 	char url[MAXURL];
-	char garbage;
+ 	char garbage;
 		
 	sprintf(pathname,"./%s/%d",dirnm,id);
 
-	if(access(pathname, F_OK) != 0 || access(pathname, R_OK)) {
+	if((access(pathname, F_OK) != 0 || access(pathname, R_OK != 0))) {
 		printf("Invalid path\n");
 		return NULL;
 	}
@@ -90,11 +90,13 @@ webpage_t *pageload(int id, char *dirnm) {
 	fscanf(fp, "%d", &htmllen);
 
 	char html[htmllen];
+	printf("%d\n",htmllen);
 	garbage = fgetc(fp);
 	
-	for (int i = 0; i < htmllen; i++) {
-		html[i] = fgetc(fp); 
-	}
+	do{
+		html[i] = fgetc(fp);
+		i=i+1;
+	}while(1);
 	
 	pagep = webpage_new(url, depth, html);
 

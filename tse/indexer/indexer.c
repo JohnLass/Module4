@@ -11,31 +11,44 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "queue.h"
 #include "hash.h"
 #include "webpage.h"
 #include "pageio.c"
 
+
+typedef struct wordcount {
+	char *word;
+	int count;
+} wordcount_t;
+
+char *NormalizeWord(char *wp);
+
 int main(void) {
 	char *dirname = NULL;
-	char **word = NULL;
+	char *wordp = NULL;
+	char *lc_wordp = NULL;
 	int id;
 	webpage_t *wp;
 	FILE *fp;
 	int pos = 0;
+	char *holderp = NULL;
 
+	
 	dirname = "pages";
-	word = &dirname;
 	id = 1;
 
 	if((fp = fopen("word_index.txt","w")) != NULL) {
 		wp = pageload(id, dirname);
 
 		while(pos >= 0) {
-			pos = webpage_getNextWord(wp,pos,word);
+			pos = webpage_getNextWord(wp,pos,&wordp);
 			if(pos >= 0) {
-				fprintf(fp,"%s\n", *word);
-				free(*word);
+				lc_wordp = NormalizeWord(wordp);
+				if(lc_wordp != NULL)
+					fprintf(fp,"%s\n", lc_wordp);
+				free(wordp);
 			}
 		}
 		
@@ -43,4 +56,29 @@ int main(void) {
 		fclose(fp);
 	}
 	exit(EXIT_SUCCESS);
+}
+
+
+char *NormalizeWord(char *wp) {
+	int len;
+	
+	
+	if(wp != NULL) {
+		len = strlen(wp);
+		if(len > 2) {
+			char holder[len +1];
+			for(int i = 0; i<len; i++) {
+				if(isalpha(wp[i])) {
+					holder[i] = tolower((unsigned char) wp[i]);
+				}
+			}
+			holder[len] = '\0';
+			//wp = holder;
+			strcpy(wp,holder);
+		}
+		else {
+			wp = NULL;
+		}
+	}
+	return wp;
 }

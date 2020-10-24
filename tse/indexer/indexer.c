@@ -26,6 +26,9 @@ typedef struct wordcount {
 char *NormalizeWord(char *wp);
 bool word_search(void *word_countp, const void *searchkeyp);
 void count_delete(void *count);
+void count_sum(void *count);
+
+int word_sum = 0;
 
 int main(void) {
 	char *dirname = NULL;
@@ -40,6 +43,10 @@ int main(void) {
 	wordcount_t *foundp;
 	bool (*fn)(void *word_count, const void *searchkeyp);
 	void (*fn2)(void *count);
+	void (*fn3)(void *count);
+
+	//busiwork
+	// FILE *fp2;
 
 	//initialize variables, open hash table, declare function pointers
 	dirname = "pages";
@@ -47,6 +54,7 @@ int main(void) {
 	htp = hopen(size);
 	fn = word_search;
 	fn2 = count_delete;
+	fn3 = count_sum;
 
 	//open the document to be written to, then load the appropriate webpage
 	if((fp = fopen("word_index2.txt","w")) != NULL) {
@@ -88,6 +96,11 @@ int main(void) {
 	//shows that it worked
 	foundp = hsearch(htp,fn,"the",3);
 	printf("Found %s %d times\n",foundp->word,foundp->count);
+
+	//checking that the calculated sum is equal to the words in the webpage
+	happly(htp, fn3);
+	printf("Found %d words\n",word_sum);
+
 
 	//free the word stored inside each wordcount_t; they were malloc'd in webpage_GetNextWord and close the hash table
 	happly(htp,fn2);
@@ -147,5 +160,13 @@ void count_delete(void *count) {
 	if(count != NULL) {
 		wordcount_t *wcp = (wordcount_t *) count;
 		free(wcp->word);
+	}
+}
+
+/* count_sum -- calculates the sum of all words within the hashtable */
+void count_sum(void *count){
+	if(count != NULL){
+		wordcount_t *wcp = (wordcount_t *) count;
+		word_sum += wcp->count;
 	}
 }

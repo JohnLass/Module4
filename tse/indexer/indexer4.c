@@ -88,10 +88,9 @@ int main(void) {
 						docp = makedoc(id,1);
 						qput(qp, docp);
 						wc->qdoc = qp;
-
 						hput(htp,wc,wc->word,strlen(wc->word));
 						fprintf(fp,"%s\n", lc_wordp);
-						break;
+
 					}
 					else {
 						qp = foundp->qdoc;
@@ -125,7 +124,7 @@ int main(void) {
 	//free the word stored inside each wordcount_t; they were malloc'd in webpage_GetNextWord and close the hash table
 	happly(htp,fn2);
 	hclose(htp);
-	free(docp);
+	//free(docp);
 	exit(EXIT_SUCCESS);
 }
 
@@ -194,6 +193,7 @@ void sumwords(void *count){
 		wordcount_t *wcp = (wordcount_t *) count;
 		while((dp = (doc_t*) qget(wcp->qdoc))!=NULL){
 			word_sum += dp->count;
+			free(dp);
 		}
 	}
 }

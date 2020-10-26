@@ -52,7 +52,8 @@ int main(void) {
 	void (*fn2)(void *count);
 	void (*fn3)(void *count);
 	bool (*fn4)(void* elementp, const void* keyp);
-
+	queue_t *qp;
+	doc_t *docp;
 	//busiwork
 	// FILE *fp2;
 
@@ -83,8 +84,8 @@ int main(void) {
 					if(foundp == NULL) {
 						wordcount_t *wc = (wordcount_t *) malloc(sizeof(wordcount_t));
 						wc->word = lc_wordp;
-						queue_t *qp = qopen();
-						doc_t *docp = makedoc(id,1);
+						qp = qopen();
+						docp = makedoc(id,1);
 						qput(qp, docp);
 						wc->qdoc = qp;
 
@@ -93,9 +94,8 @@ int main(void) {
 						break;
 					}
 					else {
-						queue_t *qp = foundp->qdoc;
+						qp = foundp->qdoc;
 						// if the document is inside the queue, update its value. else create a new document within the queue
-						doc_t* docp;
 						if((docp = qsearch(qp,fn4,&id)) != NULL){
 							docp->count += 1;
 						} else{
@@ -125,6 +125,7 @@ int main(void) {
 	//free the word stored inside each wordcount_t; they were malloc'd in webpage_GetNextWord and close the hash table
 	happly(htp,fn2);
 	hclose(htp);
+	free(docp);
 	exit(EXIT_SUCCESS);
 }
 

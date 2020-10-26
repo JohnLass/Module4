@@ -90,13 +90,18 @@ int main(void) {
 
 						hput(htp,wc,wc->word,strlen(wc->word));
 						fprintf(fp,"%s\n", lc_wordp);
+						break;
 					}
 					else {
 						queue_t *qp = foundp->qdoc;
-						doc_t *dockeyp = makedoc(id,0);
-						doc_t *docp;
-						if((docp = (doc_t *) qsearch(qp,fn4,(void *) dockeyp)) != NULL){
+						// if the document is inside the queue, update its value. else create a new document within the queue
+						doc_t* docp;
+						if((docp = qsearch(qp,fn4,&id)) != NULL){
 							docp->count += 1;
+						} else{
+							// make new document and place inside queue.
+							docp = makedoc(id,1);
+							qput(qp,docp);
 						}
 						free(lc_wordp);
 					}
@@ -174,11 +179,10 @@ bool word_search(void *word_countp, const void *searchkeyp) {
  */
 void count_delete(void *count) {
 	if(count != NULL) {
-		queue_t* qp;
+		printf("Is deleting\n");
 		wordcount_t *wcp = (wordcount_t *) count;
 		free(wcp->word);
-		qp = wcp->qdoc;
-		free(qp);
+		qclose(wcp->qdoc);
 	}
 }
 
@@ -205,15 +209,12 @@ doc_t *makedoc(int doc_id, int count){
 
 /* search_doc -- searches function for the queue of documents. if found, returns true. false if otherwise */
 bool search_doc(void* elementp, const void* keyp){
-	bool ret = false;
 	if(elementp!=NULL){
 		doc_t *doc = (doc_t*) elementp;
 		if(keyp != NULL){
-			doc_t *key = (doc_t *) keyp;
-			if(doc->doc_id == key->doc_id){
-				ret = true;
-			}
+			int *key = (int*) keyp;
+			return(doc->doc_id == *key);
 		}
 	}
-	return ret;
+	return(false);
 }

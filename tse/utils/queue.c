@@ -125,8 +125,6 @@ void* qget(queue_t *qp){
 			ptr->front = hold->next;
 			rtrn = hold->data;
 			free(hold);
-		}else{
-			printf("queue is empty\n");
 		}
 	}
 	return rtrn;
@@ -144,16 +142,7 @@ void qapply(queue_t *qp, void (*fn)(void* elementp)){
 					fn(incp->data);
 				}
 			}
-			else{
-				printf("Queue is empty!\n");	
-			}
 		}
-		else{
-			printf("Passed Null function!\n");
-		}
-	}
-		else{
-		printf("Queue does not exist!\n");
 	}
 }
 
@@ -180,7 +169,6 @@ void* qsearch(queue_t *qp,bool (*searchfn)(void* elementp,const void* keyp),cons
 			//	printf("Element Not Found.\n");
 		return NULL;
 	}
-	printf("Invalid arg\n");
 	return NULL;
 }
 
@@ -201,9 +189,7 @@ void* qremove(queue_t *qp,
 			incp = ptr->front;
 			while(flag == false && incp != NULL){		
 				flag = searchfn(incp->data,skeyp);
-				printf("Loop\n");
 				if(flag==true){
-					printf("Element Found!\n");
 					rtn =  incp->data;
 					if(loop_count == 0){
 						ptr->front = incp->next;
@@ -243,8 +229,6 @@ void qconcat(queue_t *q1p, queue_t *q2p){
 			ptr1->back = ptr2->back;
 			ptr2->back = NULL;
 			ptr2->front = NULL;
-		}else{
-			printf("Second queue is empty!\n");
 		}
 		qclose(ptr2);
 	}else{

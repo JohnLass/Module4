@@ -127,7 +127,6 @@ void *hsearch(hashtable_t *htp, bool (*searchfn)(void* elementp, const void* sea
 		void *rtrn=qsearch(hold[pos],searchfn,data);
 		return rtrn;
 	}
-	printf("ERROR With Hash/key/keylen");
 	return NULL;
 }
 
@@ -154,6 +153,5 @@ void *hremove(hashtable_t *htp, bool(*searchfn)(void* elementp, const void* sear
 		void *rtrn=qremove(hold[pos],searchfn,data);
 		return rtrn;
 	}
-	printf("ERROR With Hash/key/keylen");
 	return NULL;
 }

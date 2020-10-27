@@ -44,7 +44,6 @@ int main(int argc, char *argv[]) {
 	char *lc_wordp = NULL;
 	int id,i;
 	webpage_t *wp;
-	FILE *fp;
 	int pos = 0;
 	hashtable_t *htp;
 	uint32_t size = 100;
@@ -70,58 +69,58 @@ int main(int argc, char *argv[]) {
 	fn3 = sumwords;
 	fn4 = search_doc;
 
- 	//open the document to be written to, then load the appropriate webpage
-	if((fp = fopen("word_index2.txt","w")) != NULL) {
-		for(i=1;i<=id;i++){
-			wp = pageload(i, dirname);
-			//loop through the words in the html from that webpage
-			while(pos >= 0) {
-				pos = webpage_getNextWord(wp,pos,&wordp);
-				//if we aren't at the last word
-				if(pos >= 0) {
-					//make the word lowercase
-					lc_wordp = NormalizeWord(wordp);
-					//if the word was at least 3 chars long
-					if(lc_wordp != NULL) {
-						//search for the word in the hash table
-						foundp = hsearch(htp,fn,lc_wordp,strlen(lc_wordp));
-						//if its not in the hash table, make a new word count for it, and set it equal to 1, if it is already there, increment it's count and free the word from webpage_getNextWord
-						if(foundp == NULL) {
-							wordcount_t *wc = (wordcount_t *) malloc(sizeof(wordcount_t));
-							wc->word = lc_wordp;
-							qp = qopen();
-							docp = makedoc(i,1);
-							qput(qp, docp);
-							wc->qdoc = qp;
-							hput(htp,wc,wc->word,strlen(wc->word));
-							fprintf(fp,"%s\n", lc_wordp);
-							
-						}
-						else {
-							qp = foundp->qdoc;
-							// if the document is inside the queue, update its value. else create a new document within the queue
-							if((docp = qsearch(qp,fn4,&i)) != NULL){
-								docp->count += 1;
-							} else{
-								// make new document and place inside queue.
-								docp = makedoc(i,1);
-								qput(qp,docp);
-							}
-							free(lc_wordp);
-						}
+
+
+	for(i=1;i<=id;i++){
+		wp = pageload(i, dirname);
+		//loop through the words in the html from that webpage
+		while(pos >= 0) {
+			pos = webpage_getNextWord(wp,pos,&wordp);
+			//if we aren't at the last word
+			if(pos >= 0) {
+				//make the word lowercase
+				lc_wordp = NormalizeWord(wordp);
+				//if the word was at least 3 chars long
+				if(lc_wordp != NULL) {
+					//search for the word in the hash table
+					foundp = hsearch(htp,fn,lc_wordp,strlen(lc_wordp));
+					//if its not in the hash table, make a new word count for it, and set it equal to 1, if it is already there, increment it's count and free the word from webpage_getNextWord
+					if(foundp == NULL) {
+						wordcount_t *wc = (wordcount_t *) malloc(sizeof(wordcount_t));
+						wc->word = lc_wordp;
+						qp = qopen();
+						docp = makedoc(i,1);
+						qput(qp, docp);
+						wc->qdoc = qp;
+						hput(htp,wc,wc->word,strlen(wc->word));
+
+						
 					}
 					else {
-						//if the word wasn't three characters long, still free the word from webpage_getNextWord
-						free(wordp);
+						qp = foundp->qdoc;
+						// if the document is inside the queue, update its value. else create a new document within the queue
+						if((docp = qsearch(qp,fn4,&i)) != NULL){
+							docp->count += 1;
+						} else{
+							// make new document and place inside queue.
+							docp = makedoc(i,1);
+							qput(qp,docp);
+						}
+						free(lc_wordp);
 					}
 				}
+				else {
+					//if the word wasn't three characters long, still free the word from webpage_getNextWord
+					free(wordp);
+				}
 			}
-			//close the webpage and the file
-			webpage_delete(wp);
-			pos=0;
 		}
-			fclose(fp);	
+		//close the webpage and the file
+		webpage_delete(wp);
+		pos=0;
 	}
+	
+	
 	
 	indexsave(htp);
 	

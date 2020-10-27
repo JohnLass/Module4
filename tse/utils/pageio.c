@@ -72,7 +72,6 @@ webpage_t *pageload(int id, char *dirnm) {
 	int depth, htmllen, i=0;
 	FILE *fp;
 	char url[MAXURL];
- 	char garbage;
 		
 	sprintf(pathname,"../crawler/%s/%d",dirnm,id);
 
@@ -87,7 +86,6 @@ webpage_t *pageload(int id, char *dirnm) {
 	
 
 	char html[htmllen];
-	garbage = fgetc(fp);
 
  	while ((html[i]=(fgetc(fp)))!=EOF){
 		i=i+1;

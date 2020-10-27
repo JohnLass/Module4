@@ -16,8 +16,8 @@
 #include "hash.h"
 #include "webpage.h"
 #include "pageio.c"
-
-
+#include "indexio.c"
+/*
 typedef struct wordcount {
 	char *word;
 	queue_t *qdoc;
@@ -27,7 +27,7 @@ typedef struct doc {
 	int doc_id;
 	int count;
 } doc_t;
-
+*/
 char *NormalizeWord(char *wp);
 bool word_search(void *word_countp, const void *searchkeyp);
 void count_delete(void *count);
@@ -122,13 +122,15 @@ int main(int argc, char *argv[]) {
 		}
 			fclose(fp);	
 	}
-		
-
-	//checking that the calculated sum is equal to the words in the webpage
 	
-	happly(htp, fn3);
-	printf("Found %d words\n",word_sum);
+	indexsave(htp);
+	
+	//checking that the calculated sum is equal to the words in the webpage
+	//	happly(htp, fn3);
+	//printf("Found %d words\n",word_sum);
 
+
+	
 	//free the word stored inside each wordcount_t; they were malloc'd in webpage_GetNextWord and close the hash table
 	happly(htp,fn2);
 	hclose(htp);

@@ -11,7 +11,10 @@
  * 
  */
 
+#include <queue.h>
+#include <hash.h>
+
 /*Creates and saves an index */
-int indexsave(int id);
+int indexsave(hashtable_t *);
 
 /*Loads the files associated with an index*/

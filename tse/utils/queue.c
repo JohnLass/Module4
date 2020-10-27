@@ -159,15 +159,11 @@ void* qsearch(queue_t *qp,bool (*searchfn)(void* elementp,const void* keyp),cons
 				flag = searchfn(incp->data,skeyp);
 				
 				if(flag==true){
-					//	printf("Element Found!\n");
 					return incp->data;
 				}
 			}
 		}
-		//if(ptr->front==NULL)
-			//printf("Empty List");
-			//	printf("Element Not Found.\n");
-		return NULL;
+			return NULL;
 	}
 	return NULL;
 }

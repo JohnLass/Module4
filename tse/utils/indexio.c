@@ -62,7 +62,7 @@ int indexsave(hashtable_t *htp){
 	void (*fn)(void *word);
 	fn = print_to_file;
 
-	if((fp = fopen("indexnm","w")) != NULL) {
+	if((fp = fopen("indexnm_test","w")) != NULL) {
 		happly(htp,fn);
 		fclose(fp);
 	}
@@ -71,11 +71,31 @@ int indexsave(hashtable_t *htp){
 
 int indexload(char *fname){
 
-	FILE *fnamep, *fp;
+	FILE *fnamep;
+	char holder[30];
+	void (*fn)(void *word);
+	hashtable_t *htp;
+	uint32_t i,n=0;
 	
 	if(!(fnamep=fopen(fname,"r"))){
 		printf("Cannot read file");
 		return -1;
 	}
 
-	if((fp = fopen("indexnm"
+	if((fp = fopen("indexnm","w")) != NULL){
+		while((fgets(holder,30,fnamep))){
+			n++;
+		}
+	}
+
+	htp = hopen(n);
+
+	for(i=0;i<n;i++){
+		hput(htp
+	printf("Exited loop");
+	fclose(fp);
+	fclose(fnamep);
+	return 0;
+
+}
+				

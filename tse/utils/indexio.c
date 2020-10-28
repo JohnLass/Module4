@@ -55,20 +55,20 @@ void print_to_file(void *word) {
  *<word> <doc1id> <doc1count> <doc2id> <doc2count> ...
  *
  */
-int indexsave(hashtable_t *htp){
-	if(htp == NULL)
+int indexsave(hashtable_t *htp, char *filename) {
+	if(htp == NULL || filename == NULL)
 		return -1;
 
 	void (*fn)(void *word);
 	fn = print_to_file;
 
-	if((fp = fopen("indexnm_test","w")) != NULL) {
+	if((fp = fopen(filename,"w")) != NULL) {
 		happly(htp,fn);
 		fclose(fp);
 	}
 	return 0;
 }
-
+/*
 int indexload(char *fname){
 
 	FILE *fnamep;
@@ -99,3 +99,4 @@ int indexload(char *fname){
 
 }
 				
+*/

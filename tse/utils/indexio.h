@@ -15,7 +15,7 @@
 #include <hash.h>
 
 /*Creates and saves an index */
-int indexsave(hashtable_t *);
+int indexsave(hashtable_t *htp, char *filename);
 
 /*Loads specified index file into indexnm*/
 int indexload(char *fname);

@@ -39,7 +39,14 @@ bool search_doc(void* elementp, const void* keyp);
 int word_sum = 0;
 
 int main(int argc, char *argv[]) {
-	char *dirname = NULL;
+	if(argc!=3){
+		printf("indexer4 <pagedir> <indexnm>\n");
+		exit(EXIT_FAILURE);
+	}
+	char *dirname = argv[1];
+	char *save_name = argv[2];
+
+	
 	char *wordp = NULL;
 	char *lc_wordp = NULL;
 	int id,i;
@@ -54,16 +61,11 @@ int main(int argc, char *argv[]) {
 	bool (*fn4)(void* elementp, const void* keyp);
 	queue_t *qp;
 	doc_t *docp;
-	char *save_file = "indexnm";
+
 	
-	if(argc!=2){
-		printf("indexer4 <id>\n");
-		exit(EXIT_FAILURE);
-	}
 	
 	//initialize variables, open hash table, declare function pointers
-	dirname = "pages";
-	id = atoi(argv[1]);
+	id = 3;
 	htp = hopen(size);
 	fn = word_search;
 	fn2 = count_delete;
@@ -123,7 +125,7 @@ int main(int argc, char *argv[]) {
 	
 	
 	
-	indexsave(htp, save_file);
+	indexsave(htp, save_name);
 	
 	//checking that the calculated sum is equal to the words in the webpage
 	//	happly(htp, fn3);

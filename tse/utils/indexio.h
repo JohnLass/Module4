@@ -17,4 +17,5 @@
 /*Creates and saves an index */
 int indexsave(hashtable_t *);
 
-/*Loads the files associated with an index*/
+/*Loads specified index file into indexnm*/
+int indexload(FILE *fp);

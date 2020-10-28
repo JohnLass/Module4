@@ -69,3 +69,13 @@ int indexsave(hashtable_t *htp){
 	return 0;
 }
 
+int indexload(char *fname){
+
+	FILE *fnamep, *fp;
+	
+	if(!(fnamep=fopen(fname,"r"))){
+		printf("Cannot read file");
+		return -1;
+	}
+
+	if((fp = fopen("indexnm"

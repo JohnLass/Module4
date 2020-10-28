@@ -74,8 +74,8 @@ int main(int argc, char *argv[]) {
 
 
 
-	for(i=1;i<=id;i++){
-		wp = pageload(i, dirname);
+	i = 1;
+	while((wp = pageload(i, dirname)) != NULL) {
 		//loop through the words in the html from that webpage
 		while(pos >= 0) {
 			pos = webpage_getNextWord(wp,pos,&wordp);
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
 						qput(qp, docp);
 						wc->qdoc = qp;
 						hput(htp,wc,wc->word,strlen(wc->word));
-
+						
 						
 					}
 					else {
@@ -120,9 +120,10 @@ int main(int argc, char *argv[]) {
 		}
 		//close the webpage and the file
 		webpage_delete(wp);
+		i++;
 		pos=0;
 	}
-	
+
 	
 	
 	indexsave(htp, save_name);

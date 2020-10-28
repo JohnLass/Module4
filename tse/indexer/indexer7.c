@@ -17,6 +17,8 @@
 #include "webpage.h"
 #include "pageio.c"
 #include "indexio.c"
+
+#define MAXVAL 50
 /*
 typedef struct wordcount {
 	char *word;
@@ -45,7 +47,13 @@ int main(int argc, char *argv[]) {
 	}
 	char *dirname = argv[1];
 	char *save_name = argv[2];
-
+	char pathname[MAXVAL];
+	sprintf(pathname,"../crawler/%s/",dirname);
+	
+	if((access(pathname, F_OK)) == -1) {
+		printf("Invalid directory\n");
+		exit(EXIT_FAILURE);
+	}
 	
 	char *wordp = NULL;
 	char *lc_wordp = NULL;

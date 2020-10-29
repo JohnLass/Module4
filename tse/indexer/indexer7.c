@@ -19,17 +19,7 @@
 #include "indexio.c"
 
 #define MAXVAL 50
-/*
-typedef struct wordcount {
-	char *word;
-	queue_t *qdoc;
-} wordcount_t;
 
-typedef struct doc {
-	int doc_id;
-	int count;
-} doc_t;
-*/
 char *NormalizeWord(char *wp);
 bool word_search(void *word_countp, const void *searchkeyp);
 void count_delete(void *count);
@@ -57,7 +47,7 @@ int main(int argc, char *argv[]) {
 	
 	char *wordp = NULL;
 	char *lc_wordp = NULL;
-	int id,i;
+	int i;
 	webpage_t *wp;
 	int pos = 0;
 	hashtable_t *htp;
@@ -65,7 +55,6 @@ int main(int argc, char *argv[]) {
 	wordcount_t *foundp;
 	bool (*fn)(void *word_count, const void *searchkeyp);
 	void (*fn2)(void *count);
-	void (*fn3)(void *count);
 	bool (*fn4)(void* elementp, const void* keyp);
 	queue_t *qp;
 	doc_t *docp;
@@ -73,11 +62,9 @@ int main(int argc, char *argv[]) {
 	
 	
 	//initialize variables, open hash table, declare function pointers
-	id = 3;
 	htp = hopen(size);
 	fn = word_search;
 	fn2 = count_delete;
-	fn3 = sumwords;
 	fn4 = search_doc;
 
 

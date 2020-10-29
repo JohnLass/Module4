@@ -1,8 +1,8 @@
-/* indexsave1.test.c --- 
+/* index.test.c --- 
  * 
  * 
  * Author: John J. Lass
- * Created: Tue Oct 27 14:07:23 2020 (-0400)
+ * Created: Wed Oct 28 21:43:38 2020 (-0400)
  * Version: 
  * 
  * Description: 
@@ -61,11 +61,12 @@ int main(void) {
 	hput(index,word2,word2->word,strlen(word2->word));
 	
 	
-	//	result = indexsave(index, "test_test");
-		result = indexload("indexnm_test");
+	result = indexsave(index, "test_test");
+	result = indexload("test_test");
+
 	if(result != 0)
 		exit(EXIT_FAILURE);
-
+	
 	qclose(document_q1);
 	qclose(document_q2);
 	hclose(index);

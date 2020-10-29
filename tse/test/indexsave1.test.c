@@ -60,8 +60,7 @@ int main(void) {
 	hput(index,word1,word1->word,strlen(word1->word));
 	hput(index,word2,word2->word,strlen(word2->word));
 	
-	
-	//	result = indexsave(index, "test_test");
+		result = indexsave(index, "test_test");
 		result = indexload("indexnm_test");
 	if(result != 0)
 		exit(EXIT_FAILURE);

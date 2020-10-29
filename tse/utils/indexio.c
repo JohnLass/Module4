@@ -68,14 +68,11 @@ int indexsave(hashtable_t *htp, char *filename) {
 	}
 	return 0;
 }
-/*
+
 int indexload(char *fname){
 
 	FILE *fnamep;
-	char holder[30];
-	void (*fn)(void *word);
-	hashtable_t *htp;
-	uint32_t i,n=0;
+	char holder[50];
 	
 	if(!(fnamep=fopen(fname,"r"))){
 		printf("Cannot read file");
@@ -84,19 +81,11 @@ int indexload(char *fname){
 
 	if((fp = fopen("indexnm","w")) != NULL){
 		while((fgets(holder,30,fnamep))){
-			n++;
+			fprintf(fp,"%s",holder);
 		}
 	}
-
-	htp = hopen(n);
-
-	for(i=0;i<n;i++){
-		hput(htp
-	printf("Exited loop");
 	fclose(fp);
 	fclose(fnamep);
 	return 0;
-
 }
 				
-*/

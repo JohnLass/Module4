@@ -69,22 +69,40 @@ int indexsave(hashtable_t *htp, char *filename) {
 	return 0;
 }
 
-int indexload(char *fname){
+int indexload(hashtable_t *htp, char *fname){
 
 	FILE *fnamep;
-	char holder[50];
-	
+	char indwp[256];
+	int doc_id,id_count;
+	queue_t *qp;
+	wordcount_t *varp;
+	doc_t *dp;
+	char *wp;
+	int len;
+
 	if(!(fnamep=fopen(fname,"r"))){
 		printf("Cannot read file");
 		return -1;
 	}
-
-	if((fp = fopen("indexnm","w")) != NULL){
-		while((fgets(holder,30,fnamep))){
-			fprintf(fp,"%s",holder);
+	while(fscanf(fnamep,"%s",indwp)!=EOF){
+		len = strlen(indwp);
+		if((wp = malloc(len+1))==NULL)
+			return -1;
+		if((varp = (wordcount_t*)malloc(sizeof(wordcount_t)))==NULL)
+			return -1;
+		strcpy(wp,indwp);
+		qp=qopen();
+		while(fscanf(fnamep,"%d%d",&doc_id,&id_count)==2){
+			if((dp = malloc(sizeof(doc_t)))==NULL)
+				return -1;
+			dp->doc_id=doc_id;
+			dp->count=id_count;
+			qput(qp,dp);
 		}
+		varp->qdoc=qp;
+		varp->word=wp;
+		hput(htp,varp,wp,len);
 	}
-	fclose(fp);
 	fclose(fnamep);
 	return 0;
 }

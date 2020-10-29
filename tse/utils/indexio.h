@@ -18,4 +18,4 @@
 int indexsave(hashtable_t *htp, char *filename);
 
 /*Loads specified index file into indexnm*/
-int indexload(char *fname);
+int indexload(hashtable_t *htp, char *fname);

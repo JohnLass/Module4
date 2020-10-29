@@ -1,6 +1,6 @@
-https://thayer.github.io/engs50/Notes/makefiles/headerfiles.html
+https://thayer.github.io/engs50/Notes/git/tags.html
 3
-6131
+6902
 <!DOCTYPE html>
 <html>
 
@@ -9,13 +9,13 @@ https://thayer.github.io/engs50/Notes/makefiles/headerfiles.html
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Extra - C header files</title>
+  <title>Extra - Using Git Tags</title>
   <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
 ">
 
   <link rel="shortcut icon" href="/engs50/50.png" />
   <link rel="stylesheet" href="/engs50/css/main.css">
-  <link rel="canonical" href="/engs50/Notes/makefiles/headerfiles.html">
+  <link rel="canonical" href="/engs50/Notes/git/tags.html">
 </head>
 
 
@@ -44,56 +44,76 @@ https://thayer.github.io/engs50/Notes/makefiles/headerfiles.html
         <article class="post">
 
   <header class="post-header">
-    <h1 class="post-title">Extra - C header files</h1>
+    <h1 class="post-title">Extra - Using Git Tags</h1>
   </header>
 
   <div class="post-content">
-    <p><strong><em>Examples are not yet updated for CS50 in 17S, but the concepts are still correct.</em></strong></p>
+    <h3 id="students">Students:</h3>
 
-<p>Let’s look at the contents and purpose of <code class="highlighter-rouge">readline.h</code>.
-That file was used in the recent examples:</p>
+<p>As a member of some project, you can add tags to your repository.
+Tags are nice for adding annotations to your history.
+Tags don’t change your commit history but they can be used as a sort of bookmark.
+I often use tags for highlighting new versions or milestones in my projects.
+When you submit <code class="highlighter-rouge">lab4</code> (the crawler), that is a sort of milestone that says “OK, I’ve finished the Crawler.
+I’m ready to move on to the Indexer!” A couple of weeks (or months or years) from now you might be interested in revisiting the state of your code when you had finished the crawler, for example.
+Rather than trying to remember some long git hash for your last commit of <code class="highlighter-rouge">lab4</code>, and to help us (and your future selves), we want you to add a <code class="highlighter-rouge">tag</code> to the project to indicate when the work is complete for <code class="highlighter-rouge">lab4</code>.
+By default <code class="highlighter-rouge">git tag TAGNAME</code> will add a tag to the current <code class="highlighter-rouge">HEAD</code> of your working tree.</p>
 
-<ul>
-  <li><a href="/engs50/Examples/names1.c">names1.c</a>: arrays of strings, reading and copying lines into an array.</li>
-  <li><a href="/engs50/Examples/names2.c">names2.c</a>: scanning a string and truncating it by overwriting a character with the null <code class="highlighter-rouge">\0</code> character.</li>
-</ul>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git tag lab4submit
+</code></pre></div></div>
 
-<p>These use</p>
+<p>You can also add a <code class="highlighter-rouge">tag</code> to a previous commit – this might be useful if you charged ahead and made a few commits but want to go back and mark some commit in the past with a <code class="highlighter-rouge">tag</code>:</p>
 
-<ul>
-  <li><a href="/engs50/Examples/readline.c">readline.c</a>: a C file defining the function <code class="highlighter-rouge">readline</code>, used by <code class="highlighter-rouge">names*.c</code>.</li>
-  <li><a href="/engs50/Examples/readline.h">readline.h</a>: a C ‘header’ file that provides prototypes needed by any C program wanting to use <code class="highlighter-rouge">readline</code>.</li>
-</ul>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git tag oops d4fd63a
+</code></pre></div></div>
 
-<p>Why did we need this include file, <code class="highlighter-rouge">readline.h</code>?
-Because we compiled <code class="highlighter-rouge">names.c</code> and <code class="highlighter-rouge">readline.c</code> separately.
-When we compiled <code class="highlighter-rouge">names.c</code>, we needed to declare the prototype for the function <code class="highlighter-rouge">readline</code>, just as we would have if <code class="highlighter-rouge">readline</code> had been defined within <code class="highlighter-rouge">names.c</code>.
-Because the function was <em>not</em> defined within <code class="highlighter-rouge">names.c</code>, though, the prototype needs to be prefixed with <code class="highlighter-rouge">extern</code>, indicating that the function is external to the current C file.
-The C compiler leaves that symbol (<code class="highlighter-rouge">readline</code>) unresolved, and hopes the linker will later be able to connect it to the actual function definition when <code class="highlighter-rouge">names.o</code> is linked with other object files.</p>
+<p>If you accidentally add a <code class="highlighter-rouge">tag</code> or add a <code class="highlighter-rouge">tag</code> to the wrong commit, you can always delete a <code class="highlighter-rouge">tag</code> by using the -d flag and identifying the <code class="highlighter-rouge">tag</code> by the name you gave it.</p>
 
-<p>We could have simply typed the prototype into <code class="highlighter-rouge">names.c</code>, but we put it in a separate file <code class="highlighter-rouge">header.h</code>, and then used the special compiler directive <code class="highlighter-rouge">#include</code> to literally copy the contents of <code class="highlighter-rouge">header.h</code> into the C file at that point.
-(See the <a href="08x-preprocessor.html">lecture extra</a> about the C preprocessor.) Just in case the header file gets included multiple times, the pair of directives <code class="highlighter-rouge">#ifndef</code> (if not defined) and <code class="highlighter-rouge">#define</code> (define) ensure the body of this file is only processed once per C file.</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git tag -d oops
+</code></pre></div></div>
 
-<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/* 
- * readline.h - a utility function to safely read one line of input
- * See readline.c for documentation.
- *
- * David Kotz, April 2016
- */</span>
+<p><em>This method only affects the local repository.</em>
+If you have already pushed a tag to the remote, you need to run a specific command to remove that tag from the remote.
+To remove tag <code class="highlighter-rouge">oops</code>,</p>
 
-<span class="cp">#ifndef __READLINE_H__
-#define __READLINE_H__
-</span>
-<span class="cp">#include &lt;stdbool.h&gt;
-</span>
-<span class="k">extern</span> <span class="n">bool</span> <span class="n">readline</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">buf</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">len</span><span class="p">);</span>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git push --delete origin oops
+</code></pre></div></div>
 
-<span class="cp">#endif //  __READLINE_H__
-</span></code></pre></div></div>
+<p>Once you’ve pushed your tags to the remote, you should go to GitLab and verify that you can see any tags that you’ve created and pushed.
+On the main page of your project (in GitLab) you should see buttons for <em>commits</em>, <em>branches</em>, and <em>tags</em>.
+Click on <em>tags</em>.
+Alternatively, you can click on the <em>commits</em> icon in the left navbar and it will take you to a screen where you can browse things like commits, branches, and tags.</p>
 
-<p>We also include <code class="highlighter-rouge">header.h</code> in <code class="highlighter-rouge">readline.c</code>.
-This way, we write the prototype in only one place, and yet give the compiler information in both places where it is needed - and give the compiler a chance to help us catch any inconsistencies between the prototype and the function call in <code class="highlighter-rouge">names.c</code>, or between the prototype and the function definition in <code class="highlighter-rouge">readline.c</code>.</p>
+<p>An alternative way to delete an already-pushed tag is to visit the <em>tags</em> page in Gitlab and click on the trash-can icon to delete that tag.
+That change affects the remote repo, but not your local repo, so you need to <code class="highlighter-rouge">git pull</code> in your Terminal to update your local repo from the remote.</p>
 
+<p>To learn more about <code class="highlighter-rouge">git tag</code>, run <code class="highlighter-rouge">git help tag</code>.
+It actually has a nice section about how to delete already-pushed tags or to ‘move’ a tag to a newer commit.</p>
+
+<h3 id="graders">Graders:</h3>
+
+<p>For the sake of transparency, let’s take a quick look at how we, as graders, will use the tags you create to checkout appropriate versions of your code.
+For example, we will do something akin to the following when we go to grade your lab4 submission (the crawler):</p>
+
+<p>Clone the student repo.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git clone URL
+</code></pre></div></div>
+
+<p>List any/all existing tags—we should hopefully see the appropriate submission tag (e.g., lab4submit)</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git tag -l
+</code></pre></div></div>
+
+<p>Now we can checkout the code that was in the repo at the time of that tag (i.e., the state of the code at the time of submitting lab4).</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git checkout tags/lab4submit
+</code></pre></div></div>
+
+<p>We can create a new branch from the code base at the point of the specified tag; the grader can now freely edit the code and there are no concerns about messing up anything on the master branch.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git checkout tags/lab4submit -b lab4testing
+</code></pre></div></div>
 
   </div>
 

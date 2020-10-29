@@ -1,6 +1,6 @@
-https://thayer.github.io/engs50/Labs/Lab3/array-allocate.html
+https://thayer.github.io/engs50/Labs/Lab4/REQUIREMENTS.html
 3
-6166
+5030
 <!DOCTYPE html>
 <html>
 
@@ -9,13 +9,13 @@ https://thayer.github.io/engs50/Labs/Lab3/array-allocate.html
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Allocating an array with calloc</title>
+  <title>TSE Crawler Requirements Spec</title>
   <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
 ">
 
   <link rel="shortcut icon" href="/engs50/50.png" />
   <link rel="stylesheet" href="/engs50/css/main.css">
-  <link rel="canonical" href="/engs50/Labs/Lab3/array-allocate.html">
+  <link rel="canonical" href="/engs50/Labs/Lab4/REQUIREMENTS.html">
 </head>
 
 
@@ -44,38 +44,52 @@ https://thayer.github.io/engs50/Labs/Lab3/array-allocate.html
         <article class="post">
 
   <header class="post-header">
-    <h1 class="post-title">Allocating an array with calloc</h1>
+    <h1 class="post-title">TSE Crawler Requirements Spec</h1>
   </header>
 
   <div class="post-content">
-    <p>We’ve seen the use of a one-dimensional array of pointers to strings, in <a href="/engs50/Examples/names3.c">names3.c</a>.
-In that case, the number of slots in the array was a constant.
-What if we don’t know that number at compile time?</p>
+    <p>The TSE crawler is a standalone program that crawls the web and retrieves webpages starting from a “seed” URL.
+It parses the seed webpage, extracts any embedded URLs, then retrieves each of those pages, recursively, but limiting its exploration to a given “depth”.</p>
 
-<p>Here’s a snippet of code to hint at how to allocate an array of <code class="highlighter-rouge">num</code> slots:</p>
+<p>The crawler <strong>shall</strong>:</p>
 
-<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// the number of elements in the array
-</span><span class="kt">int</span> <span class="n">num</span> <span class="o">=</span> <span class="p">...;</span> <span class="c1">// somehow obtained; below we assume num&gt;=2
-</span><span class="p">...</span>
-<span class="c1">// array of ints
-</span><span class="kt">int</span> <span class="o">*</span><span class="n">array</span> <span class="o">=</span> <span class="n">calloc</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span>
-<span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">42</span><span class="p">;</span>
+<ol>
+  <li>execute from a command line with usage syntax
+    <ul>
+      <li><code class="highlighter-rouge">./crawler seedURL pageDirectory maxDepth</code></li>
+      <li>where <code class="highlighter-rouge">seedURL</code> is used as the initial URL,</li>
+      <li>where <code class="highlighter-rouge">pageDirectory</code> is the pathname for an existing directory in which to write downloaded webpages, and</li>
+      <li>where <code class="highlighter-rouge">maxDepth</code> is a non-negative integer representing the maximum crawl depth.</li>
+    </ul>
+  </li>
+  <li>crawl all pages reachable from <code class="highlighter-rouge">seedURL</code>, following  links to a maximum depth of <code class="highlighter-rouge">maxDepth</code>; where <code class="highlighter-rouge">maxDepth=0</code> means that crawler only explores the page at <code class="highlighter-rouge">seedURL</code>, <code class="highlighter-rouge">maxDepth=1</code> means that crawler only explores the page at <code class="highlighter-rouge">seedURL</code> and those pages to which <code class="highlighter-rouge">seedURL</code> links, and so forth inductively.</li>
+  <li>pause at least one second between page fetches.</li>
+  <li>ignore URLs that are not “internal” (meaning, outside the designated CS50 server).</li>
+  <li>write each explored page to the <code class="highlighter-rouge">pageDirectory</code> with a unique document ID, wherein
+    <ul>
+      <li>the document <code class="highlighter-rouge">id</code> starts at 1 and increments by 1 for each new page,</li>
+      <li>and the filename is of form <code class="highlighter-rouge">pageDirectory/id</code>,</li>
+      <li>and the first line of the file is the URL,</li>
+      <li>and the second line of the file is the depth,</li>
+      <li>and the rest of the file is the page content (the HTML, unchanged).</li>
+    </ul>
+  </li>
+</ol>
 
-<span class="c1">// array of pointers to int
-</span><span class="kt">int</span> <span class="o">**</span><span class="n">array</span> <span class="o">=</span> <span class="n">calloc</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="o">*</span><span class="p">));</span>
-<span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span>
-<span class="o">*</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">42</span><span class="p">;</span>
+<blockquote>
+  <p>In a requirements spec, <strong>shall do</strong> means <strong>must do</strong>.</p>
+</blockquote>
 
-<span class="c1">// for other types, the process is analogous
-</span><span class="k">struct</span> <span class="n">foo</span> <span class="o">**</span><span class="n">array</span> <span class="o">=</span> <span class="n">calloc</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">foo</span><span class="o">*</span><span class="p">);</span>
-<span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">foo</span><span class="p">));</span>
-<span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">foomember</span> <span class="o">=</span> <span class="mi">42</span><span class="p">;</span> <span class="c1">// assuming foomember is an integer member of struct foo
-</span>
-<span class="c1">// or, sometimes, you don't know how to initialize the structure
-// because it provides a 'constructor' function. first step is the same:
-</span><span class="k">struct</span> <span class="n">foo</span> <span class="o">**</span><span class="n">array</span> <span class="o">=</span> <span class="n">calloc</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">foo</span><span class="o">*</span><span class="p">);</span>
-<span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">foo_new</span><span class="p">(</span><span class="mi">42</span><span class="p">);</span> <span class="c1">// let the constructor allocate and initialize a new foo.
-</span></code></pre></div></div>
+<h4 id="be-polite">Be polite</h4>
+
+<p>Webservers do not like crawlers (think about why).
+Indeed, it you hit a web server too hard, its operator may block your crawler based on its Internet address.
+Actually, they’ll usually block your whole domain.
+A hyperactive CS50 crawler could cause some websites to block the whole of <code class="highlighter-rouge">dartmouth.edu</code>.</p>
+
+<p>To be polite, our crawler purposely slows its behavior by introducing a delay, sleeping for one second between fetches.</p>
+
+<p>Furthermore, our crawler will limit its crawl to a specific web <a href="http://old-www.cs.dartmouth.edu">server</a> inside CS, so we don’t bother any other servers on campus or beyond.</p>
 
   </div>
 

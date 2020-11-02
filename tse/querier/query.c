@@ -35,12 +35,14 @@ int main(void){
 	while(fgets(input, 1000, stdin) != NULL){
 		//checking for return key
 		if(strcmp(input,"\n")!=0){
+			input[strlen(input)-1] = '\0';
 			word = strtok(input, " ");
 			int qlen=0;
 			while(word!=NULL){
+				word[strlen(word)] = '\0';
 				strcpy(query[qlen],word);
 				word = strtok(NULL," ");
-				if(checkString(word)==0){
+				if(checkString(query[qlen])!=0){
 					flag=1;
 				}
 				qlen++;
@@ -54,10 +56,11 @@ int main(void){
 			}else{
 				printf("[Invalid Query]");
 			}
-			printf("> ");
+			printf("\n> ");
 		} else {
 			printf("> ");
 		}
+		flag = 0;
 	}
 	
 	exit(EXIT_SUCCESS);
@@ -67,13 +70,17 @@ int checkString(char *str){
 	if(str==NULL) {
 		return -1;
 	}
+	int ret = 0;
 	int length = strlen(str);
-	for(int i=0; i<(length-1); i++){
-		if(isalpha(str[i])==0){
-			return 0;
-		}	
+	int alpha;
+	for(int i=0; i<(length); i++){
+		alpha = isalpha((unsigned char)str[i]);
+		if(alpha==0){
+			return -1;
+		}
+
 	}
-	return 1;
+	return ret;
 }
 
  char *NormalizeQword(char *wp){

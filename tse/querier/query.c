@@ -23,15 +23,31 @@
 #define WLEN 10
 int checkString(char *str);
 char *NormalizeQword(char *wp);
-
+bool word_search(void *word_countp, const void *searchkeyp);
+void count_delete(void *count);
 
 int main(void){
 	char input[100];
 	char query[QLEN][WLEN];
 	char *word;
-	int flag=0;
+	int flag = 0;
+	int min = -1;
 	printf("> ");
+	hashtable_t *htp = hopen(100);
+	wordcount_t *wcp;
+	queue_t *qdocp;
+	doc_t *docp;
 
+	void (*fn2)(void *count);
+	bool (*fn)(void *word_count, const void *searchkeyp);
+	
+	fn = word_search;
+	fn2 = count_delete;
+
+	if((indexload(htp, "indexnm") != 0)) {
+		printf("Error loading index\n");
+		exit(EXIT_FAILURE);
+	}
 	while(fgets(input, 1000, stdin) != NULL){
 		//checking for return key
 		if(strcmp(input,"\n")!=0){
@@ -51,18 +67,36 @@ int main(void){
 			if(flag==0){
 				for(int i=0; i<qlen; i++){
 					char *holder = NormalizeQword(query[i]);
-					printf("%s ",holder);
+					if(strlen(holder) >= 3 && strcmp(holder,"and") != 0){
+						wcp = hsearch(htp,fn,holder,strlen(holder));
+						if(wcp==NULL) {
+							printf("%s:0 ",holder);
+							min = 0;
+						}
+						else {
+							qdocp = wcp->qdoc;
+							docp = qget(qdocp);
+							printf("%s:%d ",holder,docp->count);
+							if(min == -1 || min>docp->count)
+								min = docp->count;
+							qput(qdocp,docp);
+						}	
+					}
 				}
+				if(min!= -1)
+					printf(" -- %d\n",min);
 			}else{
-				printf("[Invalid Query]");
+				printf("[Invalid Query]\n");
 			}
-			printf("\n> ");
+			printf("> ");
 		} else {
 			printf("> ");
 		}
 		flag = 0;
+		min = -1;
 	}
-	
+	happly(htp,fn2);	
+	hclose(htp);
 	exit(EXIT_SUCCESS);
 }
 	
@@ -98,3 +132,34 @@ int checkString(char *str){
 		 }
 	 return wp;
  }
+
+/* word_search -- hashtable search function to see if a word is in the hash table, does so by comparing the to arguments
+ * returns true if it is in the table -- if the two arguments are the same
+ * returns false if it is not in the table -- if the two arguments are different
+ */
+bool word_search(void *word_countp, const void *searchkeyp) {
+	bool rtn = false;
+	char *w1;
+	wordcount_t *wcp;
+	
+	if(word_countp != NULL && searchkeyp != NULL) {
+		wcp = (wordcount_t *) word_countp;
+		w1 = (char *) searchkeyp;
+		if(strcmp(wcp->word,w1) == 0)
+			rtn = true;
+	}
+	return rtn;
+}
+
+/* count_delete -- hashtable apply function that frees the words that are stored in wordcount_t structures in the hash table
+ * these words were malloc'd in webpage_GetNextWord
+ * function also frees the queue of documents
+ */
+void count_delete(void *count) {
+	if(count != NULL) {
+		wordcount_t *wcp = (wordcount_t *) count;
+		free(wcp->word);
+		qclose(wcp->qdoc);
+
+	}
+}

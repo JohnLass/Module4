@@ -25,6 +25,13 @@ int checkString(char *str);
 char *NormalizeQword(char *wp);
 bool word_search(void *word_countp, const void *searchkeyp);
 void count_delete(void *count);
+bool doc_search(void *docp, const void *searchkeyp);
+
+typedef struct drank{
+	int rank;
+	int doc_id;
+	char *url;
+}drank_t;
 
 int main(void){
 	char input[100];
@@ -36,14 +43,20 @@ int main(void){
 	hashtable_t *htp = hopen(100);
 	wordcount_t *wcp;
 	queue_t *qdocp;
+	//int id=1;
 	doc_t *docp;
+	int *ptr = (int*)1;
+	//	drank_t *rp;
 
-	void (*fn2)(void *count);
 	bool (*fn)(void *word_count, const void *searchkeyp);
-	
+	void (*fn2)(void *count);
+	bool (*fn3)(void *docp, const void *searchkeyp);
+
+
 	fn = word_search;
 	fn2 = count_delete;
-
+	fn3 = doc_search;
+	
 	if((indexload(htp, "indexnm") != 0)) {
 		printf("Error loading index\n");
 		exit(EXIT_FAILURE);
@@ -75,11 +88,12 @@ int main(void){
 						}
 						else {
 							qdocp = wcp->qdoc;
-							docp = qget(qdocp);
-							printf("%s:%d ",holder,docp->count);
+							if((docp = qsearch(qdocp,fn3,ptr))!=NULL)
+								printf("%s:%d ",holder,docp->count);
+							//id++;
+							//ptr = &id;
 							if(min == -1 || min>docp->count)
 								min = docp->count;
-							qput(qdocp,docp);
 						}	
 					}
 				}
@@ -151,10 +165,19 @@ bool word_search(void *word_countp, const void *searchkeyp) {
 	return rtn;
 }
 
-/* count_delete -- hashtable apply function that frees the words that are stored in wordcount_t structures in the hash table
- * these words were malloc'd in webpage_GetNextWord
- * function also frees the queue of documents
- */
+bool doc_search(void *docp, const void *searchkeyp) {
+	bool rtn = false;
+	doc_t *sdocp;
+	int id = *((int *)&searchkeyp);
+
+	if(docp != NULL && searchkeyp != NULL){
+		sdocp = (doc_t*)docp;
+		if((sdocp->doc_id)==id)
+			rtn = true;
+	}
+	return rtn;
+}
+
 void count_delete(void *count) {
 	if(count != NULL) {
 		wordcount_t *wcp = (wordcount_t *) count;

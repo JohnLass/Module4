@@ -21,7 +21,7 @@
 
 #define QLEN 20
 #define WLEN 10
-int checkString(char str[]);
+int checkString(char *str);
 char *NormalizeQword(char *wp);
 
 
@@ -63,11 +63,15 @@ int main(void){
 	exit(EXIT_SUCCESS);
 }
 	
-	int checkString(char str[]){
-	for(int i=0; i<strlen(str)-1; i++){
+int checkString(char *str){
+	if(str==NULL) {
+		return -1;
+	}
+	int length = strlen(str);
+	for(int i=0; i<(length-1); i++){
 		if(isalpha(str[i])==0){
 			return 0;
-		}
+		}	
 	}
 	return 1;
 }

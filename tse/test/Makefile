@@ -8,7 +8,7 @@ pageio.test:
 			gcc $(CFLAGS) pageio.test.c $(LIBS) -o $@
 
 indexsave1.test:
-			gcc $(CFLAGS) pageio.test.c $(LIBS) -o $@
+			gcc $(CFLAGS) indexsave1.test.c $(LIBS) -o $@
 
 clean: 
 			rm -f *.o pageio.test indexsave1.test

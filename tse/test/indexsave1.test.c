@@ -68,6 +68,7 @@ int main(void) {
 	qclose(document_q1);
 	qclose(document_q2);
 	hclose(index);
+	printf("Successful test! From VS code!\n");
 	exit(EXIT_SUCCESS);
 
 }

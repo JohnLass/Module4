@@ -26,6 +26,7 @@ char *NormalizeQword(char *wp);
 bool word_search(void *word_countp, const void *searchkeyp);
 void count_delete(void *count);
 bool doc_search(void *docp, const void *searchkeyp);
+void print_queue(void *docp);
 
 typedef struct drank{
 	int rank;
@@ -43,19 +44,24 @@ int main(void){
 	hashtable_t *htp = hopen(100);
 	wordcount_t *wcp;
 	queue_t *qdocp;
+	queue_t *results;
+	queue_t *backupqp;
 	//int id=1;
 	doc_t *docp;
+	doc_t *curr_doc;
+	doc_t *retrieved_doc;
 	int *ptr = (int*)1;
 	//	drank_t *rp;
 
 	bool (*fn)(void *word_count, const void *searchkeyp);
 	void (*fn2)(void *count);
 	bool (*fn3)(void *docp, const void *searchkeyp);
-
+	void (*fn4)(void *docp);
 
 	fn = word_search;
 	fn2 = count_delete;
 	fn3 = doc_search;
+	fn4 = print_queue;
 	
 	if((indexload(htp, "indexnm") != 0)) {
 		printf("Error loading index\n");
@@ -63,6 +69,7 @@ int main(void){
 	}
 	while(fgets(input, 1000, stdin) != NULL){
 		//checking for return key
+		backupqp = qopen();
 		if(strcmp(input,"\n")!=0){
 			input[strlen(input)-1] = '\0';
 			word = strtok(input, " ");
@@ -76,37 +83,60 @@ int main(void){
 				}
 				qlen++;
 			}
-			//checking for invalid characters
-			if(flag==0){
+			//only proceed if it was a valid search
+			if(flag==0) {
+				//loop through each word in the query
 				for(int i=0; i<qlen; i++) {
 					char *holder = NormalizeQword(query[i]);
 					if(strlen(holder) >= 3 && strcmp(holder,"and") != 0) {
+						//search for the word in the index
 						wcp = hsearch(htp,fn,holder,strlen(holder));
-						if(wcp==NULL) {
-							printf("%s:0 ",holder);
-							min = 0;
+						//if the word is in the hashtable
+						if(wcp!=NULL) {
+							//get its queue of documents 
+							qdocp = wcp->qdoc;
+							//if it is the first word in the query, set the results queue to this queue
+							if(i==0){
+								results = (queue_t *) malloc(sizeof(qdocp));
+								results = qdocp;
+							}
+							else {
+								//loop through the results queue
+								while((curr_doc = qget(results))!=NULL) {
+									//if it is in the current word's queue of documents, check if this new word's count is less than the current minimum for this document
+									//printf("here3\n");
+									if((retrieved_doc = qsearch(qdocp,fn3,curr_doc))!=NULL) {
+										//printf("here4\n");
+										printf("retrieved doc id: %d, retrieved doc count: %d\n", retrieved_doc->doc_id, retrieved_doc->count);
+										if(retrieved_doc->count < curr_doc->count) {
+											curr_doc->count = retrieved_doc->count;
+										}
+										//put it into a new queue
+										qput(backupqp,curr_doc);
+									}
+								}
+								//free results and reset it to the backup, 
+								free(results);
+								results = backupqp;
+							}
 						}
 						else {
-							qdocp = wcp->qdoc;
-							if((docp = qsearch(qdocp,fn3,ptr))!=NULL)
-								printf("%s:%d ",holder,docp->count);
-							//id++;
-							//ptr = &id;
-							if(min == -1 || min>docp->count)
-								min = docp->count;
+							printf("0 documents satisfy this search\n");	
 						}	
 					}
 				}
-				if(min!= -1) {
+				qapply(results,fn4);
+				/*if(min!= -1) {
 					docp->rank = min;
 					printf(" -- docid:%d rank: %d\n",docp->doc_id, docp->rank);
-				}
+				}*/
 			}else{
 				printf("[Invalid Query]\n");
 			}
 			printf("> ");
 		} else {
 			printf("> ");
+		qclose(backupqp);
 		}
 		flag = 0;
 		min = -1;
@@ -170,12 +200,15 @@ bool word_search(void *word_countp, const void *searchkeyp) {
 bool doc_search(void *docp, const void *searchkeyp) {
 	bool rtn = false;
 	doc_t *sdocp;
-	int id = *((int *)&searchkeyp);
 
 	if(docp != NULL && searchkeyp != NULL){
+		doc_t *dockeyp = (doc_t *)searchkeyp;
+		int id = dockeyp->doc_id;
 		sdocp = (doc_t*)docp;
-		if((sdocp->doc_id)==id)
+		if((sdocp->doc_id)==id){
+			printf("true");
 			rtn = true;
+		}
 	}
 	return rtn;
 }
@@ -186,5 +219,12 @@ void count_delete(void *count) {
 		free(wcp->word);
 		qclose(wcp->qdoc);
 
+	}
+}
+
+void print_queue(void *docp) {
+	if(docp!=NULL){
+		doc_t *dp = (doc_t *) docp;
+		printf("Doc id: %d, rank: %d\n", dp->doc_id, dp->count);
 	}
 }

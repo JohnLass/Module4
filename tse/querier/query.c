@@ -27,121 +27,50 @@ bool word_search(void *word_countp, const void *searchkeyp);
 void count_delete(void *count);
 bool doc_search(void *docp, const void *searchkeyp);
 void print_queue(void *docp);
-
-typedef struct drank{
-	int rank;
-	int doc_id;
-	char *url;
-}drank_t;
+queue_t *answerQuery(char query[QLEN][WLEN],queue_t *results,int qlen, hashtable_t *htp);
+queue_t *updateRank(queue_t *results, queue_t *qdocp);
 
 int main(void){
 	char input[100];
 	char query[QLEN][WLEN];
 	char *word;
-	int flag = 0;
-	int min = -1;
-	printf("> ");
-	hashtable_t *htp = hopen(100);
-	wordcount_t *wcp;
-	queue_t *qdocp;
-	queue_t *results;
-	queue_t *backupqp;
-	//int id=1;
-	doc_t *docp;
-	doc_t *curr_doc;
-	doc_t *retrieved_doc;
-	int *ptr = (int*)1;
-	//	drank_t *rp;
-
-	bool (*fn)(void *word_count, const void *searchkeyp);
-	void (*fn2)(void *count);
-	bool (*fn3)(void *docp, const void *searchkeyp);
-	void (*fn4)(void *docp);
-
-	fn = word_search;
-	fn2 = count_delete;
-	fn3 = doc_search;
-	fn4 = print_queue;
 	
+	hashtable_t *htp = hopen(100);
+	queue_t *final_result;
+
 	if((indexload(htp, "indexnm") != 0)) {
 		printf("Error loading index\n");
 		exit(EXIT_FAILURE);
 	}
+	printf("> ");
 	while(fgets(input, 1000, stdin) != NULL){
+		final_result = qopen();
 		//checking for return key
-		backupqp = qopen();
-		if(strcmp(input,"\n")!=0){
-			input[strlen(input)-1] = '\0';
-			word = strtok(input, " ");
-			int qlen=0;
-			while(word!=NULL){
-				word[strlen(word)] = '\0';
-				strcpy(query[qlen],word);
-				word = strtok(NULL," ");
-				if(checkString(query[qlen])!=0){
-					flag=1;
-				}
-				qlen++;
-			}
-			//only proceed if it was a valid search
-			if(flag==0) {
-				//loop through each word in the query
-				for(int i=0; i<qlen; i++) {
-					char *holder = NormalizeQword(query[i]);
-					if(strlen(holder) >= 3 && strcmp(holder,"and") != 0) {
-						//search for the word in the index
-						wcp = hsearch(htp,fn,holder,strlen(holder));
-						//if the word is in the hashtable
-						if(wcp!=NULL) {
-							//get its queue of documents 
-							qdocp = wcp->qdoc;
-							//if it is the first word in the query, set the results queue to this queue
-							if(i==0){
-								results = (queue_t *) malloc(sizeof(qdocp));
-								results = qdocp;
-							}
-							else {
-								//loop through the results queue
-								while((curr_doc = qget(results))!=NULL) {
-									//if it is in the current word's queue of documents, check if this new word's count is less than the current minimum for this document
-									//printf("here3\n");
-									if((retrieved_doc = qsearch(qdocp,fn3,curr_doc))!=NULL) {
-										//printf("here4\n");
-										printf("retrieved doc id: %d, retrieved doc count: %d\n", retrieved_doc->doc_id, retrieved_doc->count);
-										if(retrieved_doc->count < curr_doc->count) {
-											curr_doc->count = retrieved_doc->count;
-										}
-										//put it into a new queue
-										qput(backupqp,curr_doc);
-									}
-								}
-								//free results and reset it to the backup, 
-								free(results);
-								results = backupqp;
-							}
-						}
-						else {
-							printf("0 documents satisfy this search\n");	
-						}	
-					}
-				}
-				qapply(results,fn4);
-				/*if(min!= -1) {
-					docp->rank = min;
-					printf(" -- docid:%d rank: %d\n",docp->doc_id, docp->rank);
-				}*/
-			}else{
-				printf("[Invalid Query]\n");
-			}
+		if(strcmp(input,"\n")==0){
 			printf("> ");
-		} else {
-			printf("> ");
-		qclose(backupqp);
+			continue;
 		}
-		flag = 0;
-		min = -1;
+		if(checkString(input) != 0) {
+			printf("[Invalid Query]\n");
+			printf("> ");
+			continue;
+		}
+		input[strlen(input)-1] = '\0';
+		word = strtok(input, " ");
+		int qlen=0;
+		while(word!=NULL){
+			strcpy(query[qlen],NormalizeQword(word));
+			word = strtok(NULL," ");
+			qlen++;
+		}	
+		//loop through each word in the query
+		final_result = answerQuery(query,final_result,qlen,htp);
+
+		qapply(final_result,print_queue);
+		qclose(final_result);
+		printf("> ");
 	}
-	happly(htp,fn2);	
+	happly(htp,count_delete);	
 	hclose(htp);
 	exit(EXIT_SUCCESS);
 }
@@ -155,7 +84,7 @@ int checkString(char *str){
 	int alpha;
 	for(int i=0; i<(length); i++){
 		alpha = isalpha((unsigned char)str[i]);
-		if(alpha==0){
+		if(alpha==0 && isspace(str[i]) == 0){
 			return -1;
 		}
 
@@ -206,7 +135,6 @@ bool doc_search(void *docp, const void *searchkeyp) {
 		int id = dockeyp->doc_id;
 		sdocp = (doc_t*)docp;
 		if((sdocp->doc_id)==id){
-			printf("true");
 			rtn = true;
 		}
 	}
@@ -225,6 +153,94 @@ void count_delete(void *count) {
 void print_queue(void *docp) {
 	if(docp!=NULL){
 		doc_t *dp = (doc_t *) docp;
-		printf("Doc id: %d, rank: %d\n", dp->doc_id, dp->count);
+		FILE *fp;
+		int id = dp->doc_id;
+		char filename[50];
+		char url[256];
+		sprintf(filename, "../crawler/pages/%d", id);
+
+		if((fp = fopen(filename,"r")) == NULL) 		
+			return;
+		
+		if((fgets(url,256,fp)) == NULL)
+			return;
+		fclose(fp);
+
+		printf("rank: %d: doc: %d: url: %s", dp->count, dp->doc_id, url);
 	}
+}
+
+/*
+ * answerQuery -- Loops through the queried words and builds a queue of documents 
+ * named results that each word shows up in and contains the rank of each
+ */
+queue_t *answerQuery(char query[QLEN][WLEN],queue_t *results,int qlen, hashtable_t *htp) {
+	queue_t *backupqp = qopen();
+	queue_t *qdocp;
+	wordcount_t *wcp;
+	doc_t *copied_doc;
+	doc_t *curr_doc;
+
+	wcp = hsearch(htp,word_search,query[0],strlen(query[0]));
+	if(wcp == NULL){
+		printf("Word 1 not found\n");
+		return NULL;
+	}
+		
+	queue_t *firstq = wcp->qdoc;
+	while((curr_doc = qget(firstq)) != NULL) {
+		copied_doc = (doc_t *) malloc(sizeof(doc_t));
+		copied_doc->doc_id = curr_doc->doc_id;
+		copied_doc->count = curr_doc->count;
+		qput(results,copied_doc);
+		qput(backupqp,curr_doc);
+	}
+
+	qclose(firstq);
+	wcp->qdoc = backupqp;
+	for(int i=1; i<qlen; i++) {
+		if(strlen(query[i]) >= 3 && strcmp(query[i],"and") != 0) {	
+			wcp = hsearch(htp,word_search,query[i],strlen(query[i]));
+			if(wcp!=NULL) {		
+				qdocp = wcp->qdoc;
+				results = updateRank(results,qdocp);
+			}
+			else {
+				printf("Word %d not found\n",(i+1));
+				return NULL;
+			}
+		}				
+	}
+	return results;
+}
+
+/*
+ * updateRank -- loops through the "results" queue and takes out documents if they don't contain
+ * the subsequent queried words and also updates rank
+ */
+queue_t *updateRank(queue_t *results, queue_t *qdocp) {
+	if(results == NULL || qdocp == NULL ) {
+		printf("Passed null pointer!\n");
+		return NULL;
+	}
+
+	doc_t *curr_doc;
+	doc_t *retrieved_doc;
+	queue_t *backupqp = qopen();
+
+	while((curr_doc = qget(results))!=NULL) {
+		if((retrieved_doc = qsearch(qdocp,doc_search,curr_doc))!=NULL) {
+			if(retrieved_doc->count < curr_doc->count) {
+				curr_doc->count = retrieved_doc->count;
+			}
+			qput(backupqp,curr_doc);
+		} 
+		else {
+			free(curr_doc);
+		}	
+	}
+
+	free(results);
+	results = backupqp;
+	return results;
 }

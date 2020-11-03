@@ -78,9 +78,9 @@ int main(void){
 			}
 			//checking for invalid characters
 			if(flag==0){
-				for(int i=0; i<qlen; i++){
+				for(int i=0; i<qlen; i++) {
 					char *holder = NormalizeQword(query[i]);
-					if(strlen(holder) >= 3 && strcmp(holder,"and") != 0){
+					if(strlen(holder) >= 3 && strcmp(holder,"and") != 0) {
 						wcp = hsearch(htp,fn,holder,strlen(holder));
 						if(wcp==NULL) {
 							printf("%s:0 ",holder);
@@ -97,8 +97,10 @@ int main(void){
 						}	
 					}
 				}
-				if(min!= -1)
-					printf(" -- %d\n",min);
+				if(min!= -1) {
+					docp->rank = min;
+					printf(" -- docid:%d rank: %d\n",docp->doc_id, docp->rank);
+				}
 			}else{
 				printf("[Invalid Query]\n");
 			}

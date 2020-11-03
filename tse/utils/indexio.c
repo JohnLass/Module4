@@ -27,6 +27,7 @@ typedef struct wordcount {
 typedef struct doc {
 	int doc_id;
 	int count;
+	int rank;
 } doc_t;
 
 //global variable so that happly function "print_to_file can access the same file repeteadly without it being passed as an argument

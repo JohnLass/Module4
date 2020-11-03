@@ -210,13 +210,7 @@ queue_t *answerQuery(char query[QLEN][WLEN],queue_t *results,int qlen, hashtable
 				printf("Word %d not found\n",(i+1));
 				return NULL;
 			}
-		}
-		else if(i==1 && (strcmp(query[i],"and")) == 0)
-			continue;	 	
-
-		else if((i==1 && (strcmp(query[i],"or")) || i==4 ) == 0 && qlen == 3){
-			printf("found or\n");
-		}
+		}				
 	}
 	return results;
 }

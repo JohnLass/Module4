@@ -66,9 +66,9 @@ int main(int argc, char *argv[]) {
 	fn = word_search;
 	fn2 = count_delete;
 	fn4 = search_doc;
-
-
-
+	
+	
+	
 	i = 1;
 	while((wp = pageload(i, dirname)) != NULL) {
 		//loop through the words in the html from that webpage
@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
 		i++;
 		pos=0;
 	}
-
+	
 	
 	
 	indexsave(htp, save_name);

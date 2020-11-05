@@ -27,6 +27,7 @@ char *NormalizeQword(char *wp);
 bool word_search(void *word_countp, const void *searchkeyp);
 void count_delete(void *count);
 bool doc_search(void *docp, const void *searchkeyp);
+bool isAO(char *wp);
 void print_queue(void *docp);
 void print_string(void *stringp);
 queue_t *answerQuery(char query[QLEN][WLEN],queue_t *results,int qlen, hashtable_t *htp);
@@ -35,11 +36,16 @@ queue_t **parseQuery(char query[QLEN][WLEN], int qlen);
 queue_t *emptyQueue(queue_t *curr);
 queue_t *qcombine(queue_t *all, queue_t *tmp);
 queue_t *qcopy(wordcount_t *wcp);
+void sort(queue_t *qp);
+bool sort_search(void *docp, const void *searchkeyp);
+int cmp(const void *a, const void *b);
 
 int main(void){
 	char input[100];
 	char query[QLEN][WLEN];
 	char *word;
+	FILE *fp = stdin;
+	//FILE *op =stdout;
 	
 	
 	hashtable_t *htp = hopen(100);
@@ -50,7 +56,7 @@ int main(void){
 		exit(EXIT_FAILURE);
 	}
 	printf("> ");
-	while(fgets(input, 1000, stdin) != NULL){
+	while(fgets(input, 1000, fp) != NULL){
 		if(strcmp(input,"\n")==0){						//error checking
 			printf("> ");
 			continue;
@@ -60,7 +66,7 @@ int main(void){
 			printf("> ");
 			continue;
 		}
-		input[strlen(input)-1] = '\0';					//normalize strinf
+		input[strlen(input)-1] = '\0';					//normalize string
 		word = strtok(input, " ");
 		int qlen=0;
 		while(word!=NULL){
@@ -70,7 +76,7 @@ int main(void){
 		}	
 
 		final_result = answerQuery(query,final_result,qlen,htp);		//handle the query, bulk of program
-		printf("final result:\n");										//printing results
+		sort(final_result);
 		qapply(final_result,print_queue);
 		qclose(final_result);
 		printf("> ");
@@ -181,6 +187,14 @@ void print_queue(void *docp) {
  * named results that each word shows up in and contains the rank of each
  */
 queue_t *answerQuery(char query[QLEN][WLEN],queue_t *results,int qlen, hashtable_t *htp) {
+	FILE *op =stdout;
+	if(qlen<1)
+		return NULL;
+	if(isAO(query[0]) || isAO(query[qlen-1])) {
+		fprintf(op,"Invalid Query!\n");
+		return NULL;
+	}
+
 	wordcount_t *wcp;
 	queue_t *all = qopen();
 	queue_t *tmp = NULL;
@@ -190,6 +204,11 @@ queue_t *answerQuery(char query[QLEN][WLEN],queue_t *results,int qlen, hashtable
 			all = qcombine(all,tmp);
 			qclose(tmp);
 			tmp = NULL;
+			if(isAO(query[i+1])) {
+				fprintf(op,"Invalid Query!\n");
+				qclose(all);
+				return NULL;
+			}
 		}
 		else if(strlen(query[i]) >= 3 && strcmp(query[i],"and") != 0 ) { //if it is a three letter word that is not "and"
 			wcp = hsearch(htp,word_search,query[i],strlen(query[i]));
@@ -211,6 +230,12 @@ queue_t *answerQuery(char query[QLEN][WLEN],queue_t *results,int qlen, hashtable
 					j++;
 				}
 				i = j;
+			}
+		}
+		if(strcmp("and", query[i]) == 0) {
+			if(isAO(query[i+1])) {
+				fprintf(op,"Invalid Query!\n");
+				return NULL;
 			}
 		}
 	}
@@ -393,4 +418,60 @@ queue_t *qcopy(wordcount_t *wcp) {
 	qclose(indexq);
 	wcp->qdoc = backupqp;
 	return rtnq;
+}
+
+bool isAO(char *wp) {
+	if(wp == NULL) {
+		return false;
+	}
+	if(strcmp(wp,"or") == 0) {
+		return true;
+	}
+	if(strcmp(wp,"and") == 0) {
+		return true;
+	}
+	return false;
+}
+
+void sort(queue_t *qp) {
+	if(qp == NULL){
+		return;
+	}
+	queue_t *backupq = qopen();
+	int array[500];
+	int i = 0;
+	doc_t *holder;
+
+	while((holder = qget(qp)) != NULL){
+		array[i] = holder->count;
+		qput(backupq,holder);
+		i++;
+	}
+	if(i>0) {
+		qsort(array,i,sizeof(int),cmp);
+		for(int j = 0; j<i; j++) {
+			int rank = array[j];
+			holder = qremove(backupq,sort_search,&rank);
+			qput(qp,holder);
+		}
+	}
+	else {
+		printf("no result\n");
+	}
+
+	qclose(backupq);
+	
+}
+
+bool sort_search(void *docp, const void *searchkeyp) {
+
+	if(docp != NULL && searchkeyp != NULL) {
+		doc_t *doc = (doc_t*) docp;
+		return doc->count== * (int*)searchkeyp;
+	}
+	return false;
+}
+
+int cmp(const void *a, const void *b) {
+	return ( *(int*)b - *(int*)a );
 }

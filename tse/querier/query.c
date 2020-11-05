@@ -40,30 +40,64 @@ void sort(queue_t *qp);
 bool sort_search(void *docp, const void *searchkeyp);
 int cmp(const void *a, const void *b);
 
-int main(void){
+FILE *output;
+int main(int argc, char *argv[]){
 	char input[100];
 	char query[QLEN][WLEN];
 	char *word;
 	FILE *fp = stdin;
-	//FILE *op =stdout;
-	
+	FILE *ip;
+
+	output=stdout;
+
+	if(argc != 3 &&  argc !=6 ){
+		printf("Usage: query <pageDir> <indexFile> [-q]\n");
+		exit(EXIT_FAILURE);
+	}
+
+	char *dirname=argv[1];
+	char filename[100];
+	sprintf(filename,"./../crawler/%s/.crawler",dirname);
+
+	if(!(ip=fopen(filename,"r"))){
+		printf("Invalid Directory\n");
+		exit(EXIT_FAILURE);
+	}
+	fclose(ip);
+	if(argc==6){
+		if((strcmp(argv[3],"-q"))!=0){
+			printf("Usage: query <pageDir> <indexFile> [-q]\n");
+			exit(EXIT_FAILURE);
+		}
+		char *out = argv[5];
+		char *in = argv[4];
+		output=fopen(out,"w");
+		fp=fopen(in,"r");
+	}
+
 	
 	hashtable_t *htp = hopen(100);
 	queue_t *final_result;
-
-	if((indexload(htp, "indexnm") != 0)) {
-		printf("Error loading index\n");
+	char *index=argv[2];
+	
+	if((indexload(htp, index) != 0)) {
+		fprintf(output,"Error loading index\n");
+		hclose(htp);
+		if(argc==6){
+			fclose(fp);
+			fclose(output);
+		}
 		exit(EXIT_FAILURE);
 	}
-	printf("> ");
+	fprintf(output,"> ");
 	while(fgets(input, 1000, fp) != NULL){
 		if(strcmp(input,"\n")==0){						//error checking
-			printf("> ");
+			fprintf(output,"> ");
 			continue;
 		}
 		if(checkString(input) != 0) {					//error checking
-			printf("[Invalid Query]\n");
-			printf("> ");
+			fprintf(output,"[Invalid Query]\n");
+			fprintf(output,"> ");
 			continue;
 		}
 		input[strlen(input)-1] = '\0';					//normalize string
@@ -74,15 +108,22 @@ int main(void){
 			word = strtok(NULL," ");
 			qlen++;
 		}	
-
+		
 		final_result = answerQuery(query,final_result,qlen,htp);		//handle the query, bulk of program
+		
+		
 		sort(final_result);
 		qapply(final_result,print_queue);
 		qclose(final_result);
-		printf("> ");
+		fprintf(output,"> ");
+
 	}
 	happly(htp,count_delete);	
 	hclose(htp);
+	if(argc==6){
+		fclose(fp);
+		fclose(output);
+	}
 	exit(EXIT_SUCCESS);
 }
 	
@@ -162,7 +203,7 @@ void count_delete(void *count) {
 	}
 }
 
-void print_queue(void *docp) {
+ void print_queue(void *docp) {
 	if(docp!=NULL){
 		doc_t *dp = (doc_t *) docp;
 		FILE *fp;
@@ -177,8 +218,7 @@ void print_queue(void *docp) {
 		if((fgets(url,256,fp)) == NULL)
 			return;
 		fclose(fp);
-
-		printf("rank: %d: doc: %d: url: %s", dp->count, dp->doc_id, url);
+		fprintf(output,"rank: %d: doc: %d: url: %s", dp->count, dp->doc_id, url);
 	}
 }
 
@@ -223,7 +263,6 @@ queue_t *answerQuery(char query[QLEN][WLEN],queue_t *results,int qlen, hashtable
 				tmp = NULL;
 				int j = i + 1;
 				while(j<qlen) {
-					printf("j: %d\n",j);
 					if (strcmp(query[j],"or") == 0) {
 						break;
 					}
@@ -232,10 +271,15 @@ queue_t *answerQuery(char query[QLEN][WLEN],queue_t *results,int qlen, hashtable
 				i = j;
 			}
 		}
-		if(strcmp("and", query[i]) == 0) {
-			if(isAO(query[i+1])) {
-				fprintf(op,"Invalid Query!\n");
-				return NULL;
+		if(i!=qlen){
+			if(strcmp("and", query[i]) == 0) {
+				if(isAO(query[i+1])) {
+					fprintf(op,"Invalid Query!\n");
+					qclose(all);
+					if(tmp!=NULL)
+						qclose(tmp);
+					return NULL;
+				}
 			}
 		}
 	}
@@ -456,7 +500,7 @@ void sort(queue_t *qp) {
 		}
 	}
 	else {
-		printf("no result\n");
+		fprintf(output,"no result\n");
 	}
 
 	qclose(backupq);

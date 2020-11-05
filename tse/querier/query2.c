@@ -65,7 +65,7 @@ int main(void){
 		}	
 		//loop through each word in the query
 		final_result = answerQuery(query,final_result,qlen,htp);
-
+		
 		qapply(final_result,print_queue);
 		qclose(final_result);
 		printf("> ");

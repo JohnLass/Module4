@@ -202,10 +202,12 @@ void* qremove(queue_t *qp,
 				loop_count = loop_count +1;
 			}
 			
-		}else
-			printf("Empty List");
-		if(flag == 0)
-			printf("Element Not Found.\n");
+		}else{
+
+		}
+		if(flag == 0){
+
+		}
 	}
 	return rtn;
 }

@@ -21,19 +21,26 @@
 
 #define QLEN 20
 #define WLEN 10
+
 int checkString(char *str);
 char *NormalizeQword(char *wp);
 bool word_search(void *word_countp, const void *searchkeyp);
 void count_delete(void *count);
 bool doc_search(void *docp, const void *searchkeyp);
 void print_queue(void *docp);
+void print_string(void *stringp);
 queue_t *answerQuery(char query[QLEN][WLEN],queue_t *results,int qlen, hashtable_t *htp);
 queue_t *updateRank(queue_t *results, queue_t *qdocp);
+queue_t **parseQuery(char query[QLEN][WLEN], int qlen);
+queue_t *emptyQueue(queue_t *curr);
+queue_t *qcombine(queue_t *all, queue_t *tmp);
+queue_t *qcopy(wordcount_t *wcp);
 
 int main(void){
 	char input[100];
 	char query[QLEN][WLEN];
 	char *word;
+	
 	
 	hashtable_t *htp = hopen(100);
 	queue_t *final_result;
@@ -44,18 +51,16 @@ int main(void){
 	}
 	printf("> ");
 	while(fgets(input, 1000, stdin) != NULL){
-		final_result = qopen();
-		//checking for return key
-		if(strcmp(input,"\n")==0){
+		if(strcmp(input,"\n")==0){						//error checking
 			printf("> ");
 			continue;
 		}
-		if(checkString(input) != 0) {
+		if(checkString(input) != 0) {					//error checking
 			printf("[Invalid Query]\n");
 			printf("> ");
 			continue;
 		}
-		input[strlen(input)-1] = '\0';
+		input[strlen(input)-1] = '\0';					//normalize strinf
 		word = strtok(input, " ");
 		int qlen=0;
 		while(word!=NULL){
@@ -63,9 +68,9 @@ int main(void){
 			word = strtok(NULL," ");
 			qlen++;
 		}	
-		//loop through each word in the query
-		final_result = answerQuery(query,final_result,qlen,htp);
 
+		final_result = answerQuery(query,final_result,qlen,htp);		//handle the query, bulk of program
+		printf("final result:\n");										//printing results
 		qapply(final_result,print_queue);
 		qclose(final_result);
 		printf("> ");
@@ -176,49 +181,44 @@ void print_queue(void *docp) {
  * named results that each word shows up in and contains the rank of each
  */
 queue_t *answerQuery(char query[QLEN][WLEN],queue_t *results,int qlen, hashtable_t *htp) {
-	queue_t *backupqp = qopen();
-	queue_t *qdocp;
 	wordcount_t *wcp;
-	doc_t *copied_doc;
-	doc_t *curr_doc;
+	queue_t *all = qopen();
+	queue_t *tmp = NULL;
 
-	wcp = hsearch(htp,word_search,query[0],strlen(query[0]));
-	if(wcp == NULL){
-		printf("Word 1 not found\n");
-		return NULL;
-	}
-		
-	queue_t *firstq = wcp->qdoc;
-	while((curr_doc = qget(firstq)) != NULL) {
-		copied_doc = (doc_t *) malloc(sizeof(doc_t));
-		copied_doc->doc_id = curr_doc->doc_id;
-		copied_doc->count = curr_doc->count;
-		qput(results,copied_doc);
-		qput(backupqp,curr_doc);
-	}
-
-	qclose(firstq);
-	wcp->qdoc = backupqp;
-	for(int i=1; i<qlen; i++) {
-		if(strlen(query[i]) >= 3 && strcmp(query[i],"and") != 0) {	
+	for(int i=0; i<qlen; i++) {						//loop through all queried words
+		if(strcmp("or", query[i]) == 0) {			// if the word is an or
+			all = qcombine(all,tmp);
+			qclose(tmp);
+			tmp = NULL;
+		}
+		else if(strlen(query[i]) >= 3 && strcmp(query[i],"and") != 0 ) { //if it is a three letter word that is not "and"
 			wcp = hsearch(htp,word_search,query[i],strlen(query[i]));
-			if(wcp!=NULL) {		
-				qdocp = wcp->qdoc;
-				results = updateRank(results,qdocp);
+			if (wcp != NULL && tmp == NULL) {	//if word is in index and is first one in an AND sequence
+				tmp = qcopy(wcp);
 			}
-			else {
-				printf("Word %d not found\n",(i+1));
-				return NULL;
+			else if(wcp != NULL && tmp != NULL) {	//if word is in index and is not first one in an AND sequence
+				tmp = updateRank(tmp,wcp->qdoc);
 			}
-		}
-		else if(i==1 && (strcmp(query[i],"and")) == 0)
-			continue;	 	
-
-		else if((i==1 && (strcmp(query[i],"or")) || i==4 ) == 0 && qlen == 3){
-			printf("found or\n");
+			else {									//if word is not in index, stop current AND index
+				qclose(tmp);
+				tmp = NULL;
+				int j = i + 1;
+				while(j<qlen) {
+					printf("j: %d\n",j);
+					if (strcmp(query[j],"or") == 0) {
+						break;
+					}
+					j++;
+				}
+				i = j;
+			}
 		}
 	}
-	return results;
+	if(tmp != NULL) {
+		all = qcombine(all,tmp);
+	}
+	qclose(tmp);
+	return all;
 }
 
 /*
@@ -252,6 +252,145 @@ queue_t *updateRank(queue_t *results, queue_t *qdocp) {
 	return results;
 }
 
+
+/* 
+ * parseQuery -- builds an array of queues in which each element of the queue
+ * is bound by AND and each queue in the array is bound by OR. Mallocs the array, 
+ * opens multiples queues (# of ORs + 1) and mallocs a word for each queried word 
+ *
+ *	**NOTE this function is from a prior, buggier version, and does not get used
+ *
+ */  
+queue_t **parseQuery(char query[QLEN][WLEN], int qlen) {
+	if(qlen == 0) {
+		return NULL;
+	}
+	if((strcmp("and", query[0])) == 0 || strlen(query[0]) < 3) {
+		printf("Invalid Query!\n");
+		return NULL;
+	}
+	if(strcmp("and", query[qlen-1]) == 0 || strcmp("or", query[qlen-1]) == 0 ) {
+		printf("Invalid Query!\n");
+		return NULL;		
+	}
+	queue_t **andq = (void*) malloc(sizeof(queue_t *)*qlen);
+	int index = 0;
+
+	queue_t *curr = qopen();
+	char *holder = (char *) malloc(sizeof(char)*strlen(query[0]));
+	qput(curr,query[0]);
+	holder = NULL;
 	
+	for(int i = 1; i<qlen ; i++){
+		if(strlen(query[i]) >= 3 && (strcmp(query[i],"and")) != 0){
+			holder = (char *) malloc(sizeof(char)*strlen(query[i]));
+			strcpy(holder,query[i]);
+			qput(curr,holder);
+			holder = NULL;
+		}
+		if(strcmp(query[i],"or") == 0){
+			andq[index] = emptyQueue(curr);
+			index++;
+			curr = qopen();
+			printf("index: %d\n", index);
+		}
+	}
+	
+	andq[index] = emptyQueue(curr);
+	index++;
+
+	while(index<qlen){
+		andq[index] = NULL;
+		index++;
+		printf("index:%d\n",index);
+	}
+	
+	for(int j = 0; j<qlen; j++){
+		printf("j: %d index: %d", j, index);
+		qapply(andq[j],print_string);
+		printf("\n\n");
+	}
+
+	return andq;
+}	
+// qapply funciton for a queue of strings
+void print_string(void *stringp) {
+	if(stringp != NULL) {
+		char *sp = (char *) stringp;
+		printf("%s ",sp);
+	}
+}
+
+/*
+ * emptyQueue -- empties a queue into a returned queue, 
+ * closes the input queue and opens the returned one
+ *
+ *	**NOTE this is from a prior, buggier version, and does not get used
+ *
+ */
+queue_t *emptyQueue(queue_t *curr) {
+	if(curr==NULL) {
+		return NULL;
+	}
+	queue_t *rtn = qopen();
+	char *holder;
+	while((holder = qget(curr)) != NULL) {
+		qput(rtn,holder);
+	}
+	qclose(curr);
+	return rtn;
+}
+
+/*
+ * qcombine -- combines two queues of documents. When the two queues repeat an element
+ * it adds their ranks.
+ * Opens: one queue that is returned
+ * Closes: one queues passed to it
+ */
+queue_t *qcombine(queue_t *all, queue_t *tmp) {
+	if(tmp == NULL) {
+		return NULL;
+	}
+	doc_t *holder;
+	doc_t *sameD;
+	queue_t *newq = qopen();
+	while((holder = qget(tmp)) != NULL) {
+		if((sameD = qremove(all,doc_search,holder)) != NULL) {
+			holder->count = holder->count + sameD->count;
+			free(sameD);
+		}
+		qput(newq, holder);
+	}
+	while((holder = qget(all)) != NULL) {
+		qput(newq, holder);
+	}
+	qclose(all);
+	return newq;
+}
 
 
+/*
+ * qcopy -- makes a copy of the queue of documents stored in the input webpage. 
+ * returns the copied queue. Opens a queue. Allocates space for doc_t in the new queue.
+ */
+queue_t *qcopy(wordcount_t *wcp) {
+	if(wcp == NULL){
+		return NULL;
+	}
+
+	queue_t *indexq = wcp->qdoc;
+	queue_t *rtnq = qopen();
+	queue_t *backupqp = qopen();
+	doc_t *curr_doc;
+	doc_t *copied_doc;
+	while((curr_doc = qget(indexq)) != NULL) {
+		copied_doc = (doc_t *) malloc(sizeof(doc_t));
+		copied_doc->doc_id = curr_doc->doc_id;
+		copied_doc->count = curr_doc->count;
+		qput(rtnq,copied_doc);
+		qput(backupqp,curr_doc);
+	}
+	qclose(indexq);
+	wcp->qdoc = backupqp;
+	return rtnq;
+}

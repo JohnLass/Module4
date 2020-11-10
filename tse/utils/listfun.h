@@ -19,13 +19,26 @@
 #include <math.h>
 #include "webpage.h"
 
+#define MAXREG 10
 
+/* the representation of a car */
+typedef struct car {
+	struct car *next;
+	char plate[MAXREG];
+	double price;
+	int year;
+} car_t;
+
+
+car_t *makecar(char *platep,double price,int year);
 
 /*Prints the car's plate, price and year. Checks to make sure pointer isn't null   */
 void print_node(void *vp);
 
 /* Makes a list with three car entries in it*/
 void make_list(void);
+
+bool checkcar(car_t *cp, char *platep, double price, int year);
 
 //bool checkcar(car_t *cp, char *platep, double price, int year);
 

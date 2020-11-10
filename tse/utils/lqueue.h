@@ -10,19 +10,19 @@
 /* the queue representation is hidden from users of the module */
 typedef void lqueue_t;	
 
-/* create an empty queue */
-lqueue_t* lqopen(void);        
+/* create an empty queue */        
+lqueue_t* lqopen(void);
 
-/* deallocate a queue, frees everything in it */
-void lqclose(queue_t *qp);   
+/* deallocate a queue, frees everything in it */  
+void lqclose(lqueue_t *lqp);
 
 /* put element at the end of the queue
  * returns 0 is successful; nonzero otherwise 
  */
-int32_t lqput(queue_t *qp, void *elementp); 
+int32_t lqput(lqueue_t *lqp, void *elementp);
 
 /* get the first first element from queue, removing it from the queue */
-void* lqget(queue_t *qp);
+void* lqget(lqueue_t *lqp);
 
 /* apply a function to every element of the queue */
 void lqapply(queue_t *qp, void (*fn)(void* elementp));
@@ -54,3 +54,9 @@ void* lqremove(queue_t *qp,
 void lqconcat(queue_t *q1p, queue_t *q2p);
 
 void ldebugq(queue_t *cp);
+
+/*
+ * rest -- tells the thread to sleep for n seconds
+ * always returns NULL
+ */
+void *rest(void *n);

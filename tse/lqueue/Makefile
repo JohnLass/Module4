@@ -2,7 +2,7 @@
 CFLAGS=-Wall -pedantic -std=c11 -I../utils -L../lib
 LIBS=-lutils -lcurl
 
-all: lqopen.test lqput1.test lqget1.test thread1.test
+all: lqopen.test lqput1.test lqget1.test thread1.test lqapply1.test
 
 lqopen.test:
 			gcc $(CFLAGS) lqopen.test.c $(LIBS) -o $@
@@ -16,5 +16,8 @@ lqget1.test:
 thread1.test:
 			gcc $(CFLAGS) thread1.test.c -lpthread $(LIBS) -o $@
 
+lqapply1.test:
+			gcc $(CFLAGS) lqapply1.test.c $(LIBS) -o $@
+
 clean: 
-			rm -f *.o lqopen.test lqput1.test lqget1.test thread1.test 
+			rm -f *.o lqopen.test lqput1.test lqget1.test thread1.test lqapply.test

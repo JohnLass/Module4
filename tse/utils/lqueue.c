@@ -86,6 +86,18 @@ void* lqget(lqueue_t *lqp) {
 }
 
 /*
+* apply a function to every element in the locked queue
+*/
+void lqapply(lqueue_t *lqp, void (*fn)(void* elementp)){
+	if(lqp!=NULL || fn!=NULL){
+        lqp_t *lp = (lqp_t*) lqp;
+        pthread_mutex_lock(&lp->lock);
+        qapply(lp->queuep,fn);
+        pthread_mutex_unlock(&lp->lock);
+	}
+}
+
+/*
  * rest -- tells the thread to sleep for n seconds
  */
 void *rest(void *n) {

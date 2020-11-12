@@ -36,17 +36,13 @@ void lqapply(queue_t *qp, void (*fn)(void* elementp));
  *          -- returns TRUE or FALSE as defined in bool.h
  * returns a pointer to an element, or NULL if not found
  */
-void* lqsearch(queue_t *qp, 
-							bool (*searchfn)(void* elementp,const void* keyp),
-							const void* skeyp);
+void* lqsearch(lqueue_t *lqp, bool (*searchfn)(void* elementp,const void* keyp), const void* skeyp);
 
 /* search a queue using a supplied boolean function (as in qsearch),
  * removes the element from the queue and returns a pointer to it or
  * NULL if not found
  */
-void* lqremove(queue_t *qp,
-							bool (*searchfn)(void* elementp,const void* keyp),
-							const void* skeyp);
+void* lqremove(queue_t *qp, bool (*searchfn)(void* elementp,const void* keyp), const void* skeyp);
 
 /* concatenatenates elements of q2 into q1
  * q2 is dealocated, closed, and unusable upon completion 

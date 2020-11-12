@@ -1,21 +1,22 @@
-/* apply3.test.c --- test for passing null function to qapply 
+/* apply1.test.c --- tests apply on a 3 car list
  * 
  * 
  * Author: Robert F. Carangelo III
- * Created: Sat Oct 10 11:37:02 2020 (-0400)
+ * Created: Thu Oct  8 13:34:13 2020 (-0400)
  * Version: 
  * 
- * Description: Passes a null function to qapply and checks to make sure it gives an error message
+ * Description puts three cars in a list, declares print node and passes print node to the qapply funtion, then closes queue: 
  * 
  */
 
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <inttypes.h>
 #include <string.h>
+#include "list.h"
+#include "listfun.h"
 #include "queue.h"
 #include "lqueue.h"
-#include "listfun.h"
 
 int main(void){
 	lqueue_t *lq;
@@ -23,9 +24,9 @@ int main(void){
 	car_t *p2 = makecar("car2", 128.3, 800);
 	car_t *p3 = makecar("car3", 8.3, 22800);
 	void (*fn)(void *cp);
-
+	car_t *testp;
 	
-	fn = NULL;
+	fn = print_node;
 	lq = lqopen();
 
 	lqput(lq, p1);
@@ -33,6 +34,10 @@ int main(void){
 	lqput(lq, p3);
 	lqapply(lq, fn);
 
+	testp = lqget(lq);
+	print_node(testp);
+
+	free(testp);
 	
 	lqclose(lq);
 	

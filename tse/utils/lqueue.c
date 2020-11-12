@@ -65,8 +65,8 @@ int32_t lqput(lqueue_t *lqp, void *elementp) {
 		//		car_t *car = (car_t*) elementp;
 		//    pthread_mutex_lock(&lp->lock); 
     qput(lp->queuep,elementp);
-    printf("In qput: sleeping for 7 second, am locked\n");
-    sleep(7);
+    printf("In qput: sleeping for 1 second, am locked\n");
+    sleep(1);
     pthread_mutex_unlock(&lp->lock);
     return 0;
 }
@@ -82,11 +82,12 @@ void* lqget(lqueue_t *lqp) {
     lqp_t *lp = (lqp_t*) lqp;
     void *rtn;
 
-		pthread_mutex_lock(&lp->lock);
+		if((pthread_mutex_trylock(&lp->lock)) != 0) {
+			printf("trying to access locked queue\n");
+			return 0;
+		}
 		
     rtn = qget(lp->queuep);
-		//car1 = (car_t*) rtn;
-		//printf("car1->price: %f\n",car1->price);
     pthread_mutex_unlock(&lp->lock);
     return (void *)rtn;
 }
@@ -95,12 +96,17 @@ void* lqget(lqueue_t *lqp) {
 * apply a function to every element in the locked queue
 */
 void lqapply(lqueue_t *lqp, void (*fn)(void* elementp)){
-	if(lqp!=NULL || fn!=NULL){
-        lqp_t *lp = (lqp_t*) lqp;
-        pthread_mutex_lock(&lp->lock);
-        qapply(lp->queuep,fn);
-        pthread_mutex_unlock(&lp->lock);
+	if(lqp==NULL || fn==NULL){
+		return;
 	}
+	lqp_t *lp = (lqp_t*) lqp;
+	if((pthread_mutex_trylock(&lp->lock)) != 0) {
+			printf("trying to access locked queue\n");
+			return;
+	}
+	qapply(lp->queuep,fn);
+	pthread_mutex_unlock(&lp->lock);
+	return;
 }
 
 /*
@@ -119,4 +125,26 @@ void *rest(void *n) {
     return NULL;
 }
 
-
+/* search a queue using a supplied boolean function
+ * skeyp -- a key to search for
+ * searchfn -- a function applied to every element of the queue
+ *          -- elementp - a pointer to an element
+ *          -- keyp - the key being searched for (i.e. will be 
+ *             set to skey at each step of the search
+ *          -- returns TRUE or FALSE as defined in bool.h
+ * returns a pointer to an element, or NULL if not found
+ */
+void* lqsearch(lqueue_t *lqp, bool (*searchfn)(void* elementp,const void* keyp), const void* skeyp) {
+    if(lqp==NULL || searchfn==NULL || skeyp == NULL) {
+		return NULL;
+	}
+    lqp_t *lp = (lqp_t*) lqp;
+	if((pthread_mutex_trylock(&lp->lock)) != 0) {
+			printf("trying to access locked queue\n");
+			return NULL;
+	}
+    void *rtn;
+    rtn = qsearch(lp->queuep,searchfn,skeyp);
+    pthread_mutex_unlock(&lp->lock);
+    return (void *)rtn;
+}

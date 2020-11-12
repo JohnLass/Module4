@@ -15,6 +15,7 @@
 #include "queue.h"
 #include "lqueue.h"
 #include "listfun.h"
+#include <pthread.h>
 
 int main(void) {
 	lqueue_t *lqp = lqopen();

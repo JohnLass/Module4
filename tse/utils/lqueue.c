@@ -20,7 +20,7 @@
 
 typedef struct lqp {
 	struct queue_t *queuep;
-    pthread_mutex_t lock;
+	pthread_mutex_t lock;
 } lqp_t;
 
 /*
@@ -57,13 +57,16 @@ int32_t lqput(lqueue_t *lqp, void *elementp) {
     if(lqp == NULL || elementp == NULL) {
         return -1;
     }
-    lqp_t *lp = (lqp_t *) lqp;
-    car_t *car = (car_t*) elementp;
-    pthread_mutex_lock(&lp->lock); 
+		lqp_t *lp = (lqp_t *) lqp;
+		if((pthread_mutex_trylock(&lp->lock)) != 0) {
+			printf("trying to access locked queue\n");
+			return 0;
+		}
+		//		car_t *car = (car_t*) elementp;
+		//    pthread_mutex_lock(&lp->lock); 
     qput(lp->queuep,elementp);
-    printf("car: price: %f\n",car->price);
-    printf("In qput: sleeping for 10 second, am locked\n");
-    sleep(10);
+    printf("In qput: sleeping for 7 second, am locked\n");
+    sleep(7);
     pthread_mutex_unlock(&lp->lock);
     return 0;
 }
@@ -77,12 +80,15 @@ void* lqget(lqueue_t *lqp) {
         return NULL;
     }
     lqp_t *lp = (lqp_t*) lqp;
-    void *rtn = NULL;
-    pthread_mutex_lock(&lp->lock);
+    void *rtn;
 
+		pthread_mutex_lock(&lp->lock);
+		
     rtn = qget(lp->queuep);
+		//car1 = (car_t*) rtn;
+		//printf("car1->price: %f\n",car1->price);
     pthread_mutex_unlock(&lp->lock);
-    return rtn;
+    return (void *)rtn;
 }
 
 /*

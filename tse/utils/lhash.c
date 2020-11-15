@@ -31,8 +31,7 @@
 
 
 typedef struct lht {
-	queue_t **qTable;
-  uint32_t hsize;
+	struct hashtable_t *hasht;
   pthread_mutex_t lock;
 } lht_t;
 
@@ -81,27 +80,12 @@ static uint32_t SuperFastHash (const char *data,int len,uint32_t tablesize) {
  * lqopen -- opens a queue, and makes an associated lock
  */
 lhashtable_t* lhopen(uint32_t hsize) {
-    // memory allocation
-    lht_t *lht;
-
-    if (!(lht=(lht_t*)malloc(sizeof(lht_t)))) {
-      printf("Error: Failure allocating memory\n");
-      return NULL;
-    }
-    if(!(lht->qTable=malloc(sizeof(void *)*hsize))){
-    printf("Error: Failure allocating memory\n");
-    return NULL;
-    }
-    // setting hashsize
-    lht->hsize=hsize;
-
-    //setting queue pointers
-    queue_t **hold = lht->qTable;
-    for(int i=0; i<hsize; i++){
-        hold[i] = qopen();
-    }
-    pthread_mutex_init(&lht->lock, NULL);
-    return (lhashtable_t*)lht;
+	ht_t ht = hopen(hsize);
+	if(!(lht_t *lht = (lht_t *) malloc(sizeof(lht_t))))
+		return NULL;
+	lht->hasht = ht;
+	pthread_mutex_init(&lht->lock, NULL);
+	return (lhashtable_t*)lht;
 }  
 
 /*
@@ -111,15 +95,73 @@ void lhclose(lhashtable_t *lhtp) {
     if(lhtp == NULL){
         return;
     }
-    lht_t *ptr = (lht_t*)lhtp;
-    queue_t **hold = ptr->qTable;
-    for(int i=0; i<ptr->hsize; i++){
-      qclose(hold[i]);
-    }
-    pthread_mutex_destroy(&ptr->lock);
-    free(ptr->qTable);
-    free(ptr);
-  
-
+		lht_t *lht = (lht_t *) lhtp;
+		hclose(lht->hasht);
+		pthread_mutex_destroy(&ptr->lock);
+		free(lhtp);
     return;
+}
+
+
+int32_t lhput(lhashtable_t *htp, void *ep, const char *key, int keylen) {
+	if(htp == NULL || ep == NULL || key == NULL)
+		return -1;
+	lht_t ht = (lht_t *) htp;
+	if((pthread_mutex_trylock(&ht->lock)) != 0){
+		printf("Trying to access locked hash table");
+		return 0;
+	}
+
+	hput(ht->hasht,ep,key,keylen);
+	pthread_mutex_unlock(&ht->lock);
+	return 0;
+}
+	
+void *lhsearch(lhashtable_t *htp, bool (*searchfn)(void* elementp, const void* searchkeyp), const char *key, int32_t keylen){
+
+	if(htp == NULL || searchfn == NULL || key == NULL)
+		return NULL;
+
+	lht_t ht = (lht_t *) htp;
+
+	if((pthread_mutex_trylock(&ht->lock)) != 0){
+		printf("Trying to access locked hash table");
+		return NULL;
+	}
+	void *search;
+	search = hsearch(ht->hasht,searchfn,key,keylen);
+	pthread_mutex_unlock(&ht->lock);
+	return search;
+}
+
+
+void lhapply(lhashtable_t *htp, void(*fn)(void* ep)){
+	if(htp == NULL || fn == NULL)
+		return;
+
+	lht_t ht = (lht_t *) htp;
+	if((pthread_mutex_trylock(&ht->lock)) != 0){
+		printf("Trying to access locked hash table");
+		return NULL;
+	}
+
+	happly(ht->hasht,fn);
+	pthread_mutex_unlock(&ht->lock);
+	return;
+}
+
+void *hremove(lhashtable_t *htp, bool(*searchfn)(void *elementp, const void* searchkeyp), const char *key, int32_t keylen) {
+
+	if(htp == NULL || searchfn == NULL || key == NULL)
+		return;
+
+	lht_t ht = (lht_t *) htp;
+	if((pthread_mutex_trylock(&ht->lock)) != 0){
+		printf("Trying to access locked hash table");
+		return NULL;
+	}
+
+	hremove(ht->hasht, searchfn, key, keylen);
+	pthread_mutex_unlock(&ht->lock);
+	return;
 }

@@ -116,3 +116,4 @@ void *lhremove(lhashtable_t *lhtp, bool(*searchfn)(void *elementp, const void* s
 	pthread_mutex_unlock(&ht->lock);
 	return rtrn;
 }
+

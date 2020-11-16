@@ -65,8 +65,8 @@ int32_t lqput(lqueue_t *lqp, void *elementp) {
 		//		car_t *car = (car_t*) elementp;
 		//    pthread_mutex_lock(&lp->lock); 
     qput(lp->queuep,elementp);
-    printf("In qput: sleeping for 1 second, am locked\n");
-    sleep(1);
+    printf("In qput: sleeping for 7 second, am locked\n");
+    sleep(7);
     pthread_mutex_unlock(&lp->lock);
     return 0;
 }

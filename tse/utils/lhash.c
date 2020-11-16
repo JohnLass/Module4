@@ -25,7 +25,7 @@
 
 typedef struct lht {
 	struct hashtable_t *hasht;
-  	pthread_mutex_t lock;
+	pthread_mutex_t lock;
 } lht_t;
 
 /*
@@ -62,10 +62,8 @@ int32_t lhput(lhashtable_t *lhtp, void *ep, const char *key, int keylen) {
 		return -1;
 	lht_t* ht = (lht_t *) lhtp;
 	if((pthread_mutex_trylock(&ht->lock)) != 0){
-		printf("Trying to access locked hash table");
-		return 0;
+		return -1;
 	}
-
 	hput(ht->hasht,ep,key,keylen);
 	pthread_mutex_unlock(&ht->lock);
 	return 0;
@@ -79,7 +77,6 @@ void *lhsearch(lhashtable_t *lhtp, bool (*searchfn)(void* elementp, const void* 
 	lht_t* ht = (lht_t *) lhtp;
 
 	if((pthread_mutex_trylock(&ht->lock)) != 0){
-		printf("Trying to access locked hash table");
 		return NULL;
 	}
 	void *search = hsearch(ht->hasht,searchfn,key,keylen);
@@ -94,7 +91,6 @@ void lhapply(lhashtable_t *lhtp, void(*fn)(void* ep)){
 
 	lht_t* ht = (lht_t *) lhtp;
 	if((pthread_mutex_trylock(&ht->lock)) != 0){
-		printf("Trying to access locked hash table");
 		return;
 	}
 
@@ -108,8 +104,7 @@ void *lhremove(lhashtable_t *lhtp, bool(*searchfn)(void *elementp, const void* s
 		return NULL;
 
 	lht_t* ht = (lht_t *) lhtp;
-	if((pthread_mutex_trylock(&ht->lock)) != 0){
-		printf("Trying to access locked hash table");
+	if((pthread_mutex_trylock(&ht->lock)) != 0) {
 		return NULL;
 	}
 	void *rtrn = hremove(ht->hasht, searchfn, key, keylen);

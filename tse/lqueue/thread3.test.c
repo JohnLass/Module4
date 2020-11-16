@@ -27,7 +27,9 @@ void *put_fn(void *lqp) {
 
 	printf("in second thread function, about to put\n");
 
-	lqput(lp,car1);
+	if(lqput(lp,car1) == -1) {
+        free(car1);
+    }
 	
 	return NULL;
 }
@@ -53,7 +55,7 @@ void *first_thread(void *lqp) {
 int main(void) {
 	lqueue_t *lqp = lqopen();
 	car_t *car3;
-	pthread_t tid1, tid2;
+	pthread_t tid1, tid2, tid3;
 
 
 	printf("In main, about to make a thread\n");
@@ -64,12 +66,19 @@ int main(void) {
 	printf("In main, about to create another thread and put to it\n");
 	if(pthread_create(&tid2,NULL,put_fn,lqp)!=0) 
 		exit(EXIT_FAILURE);
+
+    printf("in main, about to create a thrid thread and call put\n");
+	if(pthread_create(&tid3,NULL,put_fn,lqp)!=0) 
+		exit(EXIT_FAILURE);
 	
-	printf("In main, about to join thread\n");
+	printf("In main, about to join threads\n");
 	if(pthread_join(tid1,NULL) != 0) 
 		exit(EXIT_FAILURE);
 	
 	if(pthread_join(tid2,NULL) != 0) 
+		exit(EXIT_FAILURE);
+    
+    if(pthread_join(tid3,NULL) != 0) 
 		exit(EXIT_FAILURE);
 	
 	car3 = lqget(lqp);

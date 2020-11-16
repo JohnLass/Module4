@@ -60,7 +60,7 @@ int32_t lqput(lqueue_t *lqp, void *elementp) {
 		lqp_t *lp = (lqp_t *) lqp;
 		if((pthread_mutex_trylock(&lp->lock)) != 0) {
 			printf("trying to access locked queue\n");
-			return 0;
+			return -1;
 		}
 		//		car_t *car = (car_t*) elementp;
 		//    pthread_mutex_lock(&lp->lock); 
@@ -84,7 +84,7 @@ void* lqget(lqueue_t *lqp) {
 
 		if((pthread_mutex_trylock(&lp->lock)) != 0) {
 			printf("trying to access locked queue\n");
-			return 0;
+			return  NULL;
 		}
 		
     rtn = qget(lp->queuep);

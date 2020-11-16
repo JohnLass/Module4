@@ -11,7 +11,7 @@ crawler2:
 			gcc $(CFLAGS) crawler2.c $(LIBS) -o $@
 
 run:
-			./crawler2 https://thayer.github.io/engs50/ pages 3
+			./crawler2 https://thayer.github.io/engs50/ pages 1
 
 clean: 
 			rm -f *.o crawler crawler2

@@ -60,6 +60,10 @@ int main(void) {
 	char *key = "plate2";
 
 	car3 = lhsearch(lqp,fn,key,strlen(key));
+	if(!(checkcar(car3,"plate2",56.7,6043))) {
+		printf("not the right car\n");
+		exit(EXIT_FAILURE);
+	}
 	printf("car3: %f\n",car3->price);
 	lhremove(lqp,fn,key,strlen(key));
 

@@ -70,7 +70,9 @@ int main(int argc, char *argv[]) {
 	
 	
 	i = 1;
+	printf("%d, %s\n",i,dirname);
 	while((wp = pageload(i, dirname)) != NULL) {
+		printf("Successfully loaded a page\n");
 		//loop through the words in the html from that webpage
 		while(pos >= 0) {
 			pos = webpage_getNextWord(wp,pos,&wordp);
